@@ -44,14 +44,7 @@ class TwitTwatApp : Gtk.Application {
 		dynamic Gst.Element e = element;
 
 		if (factory.get_name () == "souphttpsrc") {
-			var val = GLib.Value(typeof(string));
-			val.set_string(client_id);
-
-			var headers = new Gst.Structure.empty("client-id");
-			headers.set_value("Client-ID", val);
-
 			e.ssl_strict = false;
-			e.extra_headers = headers;
 		}
 	}
 
