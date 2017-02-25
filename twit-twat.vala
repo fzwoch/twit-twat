@@ -30,10 +30,6 @@ class TwitTwatApp : Gtk.Application {
 	private dynamic Gtk.ApplicationWindow window = null;
 	private bool fullscreen_state = false;
 
-	private TwitTwatApp () {
-		Object (application_id: "zwoch.florian.twit-twat", flags: ApplicationFlags.FLAGS_NONE);
-	}
-
 	private void on_element (Gst.Element playbin, Gst.Element element) {
 		var factory = element.get_factory ();
 
