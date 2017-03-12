@@ -21,15 +21,13 @@ class TwitTwatApp : Gtk.Application {
 	static string channel = "";
 	static string client_id = "7ikopbkspr7556owm9krqmalvr2w0i4";
 	dynamic Gst.Element playbin = null;
+	bool is_fullscreen = false;
 
 	const GLib.OptionEntry[] options = {
 		{ "channel", 0, 0, GLib.OptionArg.STRING, ref channel, "Twitch.tv channel name", "CHANNEL" },
 		{ "client-id", 0, 0, GLib.OptionArg.STRING, ref client_id, "Twitch.tv Client-ID", "CLIENT-ID" },
 		{ null }
 	};
-
-	private dynamic Gtk.ApplicationWindow window = null;
-	private bool fullscreen_state = false;
 
 	public override void activate () {
 		var session = new Soup.Session ();
@@ -81,7 +79,7 @@ class TwitTwatApp : Gtk.Application {
 
 		Gtk.StyleContext.add_provider_for_screen (Gdk.Screen.get_default (), css, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION);
 
-		window = new Gtk.ApplicationWindow (this);
+		var window = new Gtk.ApplicationWindow (this);
 		window.title = "Twit-Twat";
 		window.set_hide_titlebar_when_maximized (true);
 		window.set_default_size (960, 540);
@@ -90,7 +88,7 @@ class TwitTwatApp : Gtk.Application {
 
 		window.button_press_event.connect ((event) => {
 			if (event.type == Gdk.EventType.DOUBLE_BUTTON_PRESS && event.button == 1) {
-				if (fullscreen_state == false)
+				if (is_fullscreen == false)
 					window.fullscreen ();
 				else
 					window.unfullscreen ();
@@ -101,7 +99,7 @@ class TwitTwatApp : Gtk.Application {
 
 		window.window_state_event.connect ((event) => {
 			if (event.changed_mask == Gdk.WindowState.FULLSCREEN) {
-				fullscreen_state = !fullscreen_state;
+				is_fullscreen = !is_fullscreen;
 				return true;
 			}
 			return false;
@@ -113,7 +111,7 @@ class TwitTwatApp : Gtk.Application {
 		});
 
 		window.key_press_event.connect ((source, key) => {
-			if (key.keyval == Gdk.Key.Escape && fullscreen_state == true) {
+			if (key.keyval == Gdk.Key.Escape && is_fullscreen == true) {
 				window.unfullscreen ();
 				return true;
 			}
@@ -132,7 +130,7 @@ class TwitTwatApp : Gtk.Application {
 		playbin.set_state (Gst.State.PLAYING);
 	}
 
-	public static int main (string[] args) {
+	static int main (string[] args) {
 		Gst.init (ref args);
 
 		var app = new TwitTwatApp ();
