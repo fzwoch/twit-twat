@@ -19,7 +19,8 @@
 
 class TwitTwatApp : Gtk.Application {
 	static string channel = "";
-	static string client_id = "";
+	static string client_id = "7ikopbkspr7556owm9krqmalvr2w0i4";
+	dynamic Gst.Element playbin = null;
 
 	const GLib.OptionEntry[] options = {
 		{ "channel", 0, 0, GLib.OptionArg.STRING, ref channel, "Twitch.tv channel name", "CHANNEL" },
@@ -30,20 +31,6 @@ class TwitTwatApp : Gtk.Application {
 	private dynamic Gtk.ApplicationWindow window = null;
 	private bool fullscreen_state = false;
 
-	private void on_element (Gst.Element playbin, Gst.Element element) {
-		var factory = element.get_factory ();
-
-		if (factory == null) {
-			return;
-		}
-
-		dynamic Gst.Element e = element;
-
-		if (factory.get_name () == "souphttpsrc") {
-			e.ssl_strict = false;
-		}
-	}
-
 	public override void activate () {
 		var session = new Soup.Session ();
 		var message = new Soup.Message ("GET", "https://api.twitch.tv/api/channels/" + channel + "/access_token");
@@ -52,6 +39,7 @@ class TwitTwatApp : Gtk.Application {
 
 		InputStream stream = null;
 		try {
+			session.ssl_strict = false;
 			stream = session.send (message);
 		} catch (GLib.Error e) {
 			warning (e.message);
@@ -74,8 +62,6 @@ class TwitTwatApp : Gtk.Application {
 		reader.read_member ("token");
 		var token = reader.get_string_value ();
 		reader.end_member ();
-
-		print("token: %s\n",token);
 
 		var rand = new GLib.Rand ();
 
@@ -122,7 +108,8 @@ class TwitTwatApp : Gtk.Application {
 		});
 
 		window.destroy.connect ((event) => {
-			print ("FIXME: stop pipeline\n");
+			playbin.set_state (Gst.State.NULL);
+			playbin = null;
 		});
 
 		window.key_press_event.connect ((source, key) => {
@@ -133,14 +120,13 @@ class TwitTwatApp : Gtk.Application {
 			return false;
 		});
 
-		dynamic Gst.Element playbin = Gst.ElementFactory.make ("playbin", null);
+		playbin = Gst.ElementFactory.make ("playbin", null);
 		dynamic Gst.Element gtksink = Gst.ElementFactory.make ("gtkglsink", null);
 
 		Gtk.Widget widget = gtksink.widget;
 		window.add (widget);
 		widget.show ();
 
-		playbin.element_setup.connect (on_element);
 		playbin.video_sink = gtksink;
 		playbin.uri = uri;
 		playbin.set_state (Gst.State.PLAYING);
