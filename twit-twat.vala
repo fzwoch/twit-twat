@@ -120,6 +120,9 @@ class TwitTwatApp : Gtk.Application {
 
 		playbin = Gst.ElementFactory.make ("playbin", null);
 		var gtksink = Gst.ElementFactory.make ("gtkglsink", null) as dynamic Gst.Element;
+		if (gtksink == null) {
+			gtksink = Gst.ElementFactory.make ("gtksink", null) as dynamic Gst.Element;
+		}
 
 		Gtk.Widget widget = gtksink.widget;
 		window.add (widget);
