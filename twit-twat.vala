@@ -72,7 +72,7 @@ class TwitTwatApp : Gtk.Application {
 
 		var css = new Gtk.CssProvider ();
 		try {
-			css.load_from_data ("* {background-color: black;}");
+			css.load_from_data ("window window { background-color: black; }");
 		} catch (GLib.Error e) {
 			warning (e.message);
 		}
@@ -124,6 +124,30 @@ class TwitTwatApp : Gtk.Application {
 		Gtk.Widget widget = gtksink.widget;
 		window.add (widget);
 		widget.show ();
+
+		var bus = playbin.get_bus ();
+		bus.set_sync_handler ((bus, message) => {
+			switch (message.type) {
+				case Gst.MessageType.WARNING:
+					GLib.Error err;
+					message.parse_warning (out err, null);
+					print (err.message + "\n");
+					break;
+				case Gst.MessageType.ERROR:
+					GLib.Error err;
+					message.parse_error (out err, null);
+					GLib.Idle.add (() => {
+						var dialog = new Gtk.MessageDialog (window, Gtk.DialogFlags.DESTROY_WITH_PARENT, Gtk.MessageType.ERROR, Gtk.ButtonsType.CLOSE, err.message);
+						dialog.run ();
+						dialog.destroy ();
+						return false;
+					});
+					break;
+				default:
+					break;
+			}
+			return Gst.BusSyncReply.DROP;
+		});
 
 		playbin.video_sink = gtksink;
 		playbin.uri = uri;
