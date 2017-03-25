@@ -131,6 +131,15 @@ class TwitTwatApp : Gtk.Application {
 		var bus = playbin.get_bus ();
 		bus.set_sync_handler ((bus, message) => {
 			switch (message.type) {
+				case Gst.MessageType.EOS:
+					GLib.Idle.add (() => {
+						playbin.set_state (Gst.State.NULL);
+						var dialog = new Gtk.MessageDialog (window, Gtk.DialogFlags.DESTROY_WITH_PARENT, Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE, "Broadcast finished");
+						dialog.run ();
+						dialog.destroy ();
+						return false;
+					});
+					break;
 				case Gst.MessageType.WARNING:
 					GLib.Error err;
 					message.parse_warning (out err, null);
