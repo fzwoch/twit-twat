@@ -98,7 +98,7 @@ class TwitTwatApp : Gtk.Application {
 		});
 
 		window.window_state_event.connect ((event) => {
-			if (event.changed_mask == Gdk.WindowState.FULLSCREEN) {
+			if ((event.changed_mask & Gdk.WindowState.FULLSCREEN) != 0) {
 				is_fullscreen = !is_fullscreen;
 				return true;
 			}
