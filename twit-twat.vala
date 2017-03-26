@@ -68,7 +68,7 @@ class TwitTwatApp : Gtk.Application {
 			"player=twitchweb&" +
 			"token=" + token + "&" +
 			"sig=" + sig + "&" +
-			"allow_audio_only=true&allow_source=true&type=any&p=" + rand.int_range(0, 999999).to_string ();
+			"allow_audio_only=true&allow_source=true&type=any&p=" + rand.int_range (0, 999999).to_string ();
 
 		var css = new Gtk.CssProvider ();
 		try {
