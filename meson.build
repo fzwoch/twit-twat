@@ -8,5 +8,6 @@ deps += dependency('libsoup-2.4')
 deps += dependency('json-glib-1.0')
 
 executable('twit-twat', 'twit-twat.vala',
-	dependencies : deps
+	dependencies : deps,
+	install : true
 )
