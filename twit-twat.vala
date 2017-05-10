@@ -119,17 +119,14 @@ class TwitTwatApp : Gtk.Application {
 		});
 
 		playbin = Gst.ElementFactory.make ("playbin", null);
-		var gtksink = Gst.ElementFactory.make ("gtkglsink", null) as dynamic Gst.Element;
-		if (gtksink == null) {
-			gtksink = Gst.ElementFactory.make ("gtksink", null) as dynamic Gst.Element;
-		}
-
-		Gtk.Widget widget = gtksink.widget;
-		window.add (widget);
-		widget.show ();
 
 		var bus = playbin.get_bus ();
 		bus.set_sync_handler ((bus, message) => {
+			if (Gst.Video.is_video_overlay_prepare_window_handle_message (message)) {
+				var overlay = message.src as Gst.Video.Overlay;
+				var win = window.get_window () as Gdk.X11.Window;
+				overlay.set_window_handle ((uint*)win.get_xid ());
+			}
 			switch (message.type) {
 				case Gst.MessageType.EOS:
 					GLib.Idle.add (() => {
@@ -161,7 +158,6 @@ class TwitTwatApp : Gtk.Application {
 			return Gst.BusSyncReply.DROP;
 		});
 
-		playbin.video_sink = gtksink;
 		playbin.uri = uri;
 		playbin.set_state (Gst.State.PLAYING);
 	}
