@@ -103,25 +103,21 @@ class TwitTwatApp : Gtk.Application {
 			switch (event.keyval) {
 				case Gdk.Key.KP_Add:
 				case Gdk.Key.plus:
-					if (playbin != null) {
-						double volume = playbin.volume;
-						volume += 0.025;
-						if (volume > 1.0) {
-							volume = 1.0;
-						}
-						playbin.volume = volume;
+					double volume = playbin.volume;
+					volume += 0.025;
+					if (volume > 1.0) {
+						volume = 1.0;
 					}
+					playbin.volume = volume;
 					break;
 				case Gdk.Key.KP_Subtract:
 				case Gdk.Key.minus:
-					if (playbin != null) {
-						double volume = playbin.volume;
-						volume -= 0.025;
-						if (volume < 0.0) {
-							volume = 0.0;
-						}
-						playbin.volume = volume;
+					double volume = playbin.volume;
+					volume -= 0.025;
+					if (volume < 0.0) {
+						volume = 0.0;
 					}
+					playbin.volume = volume;
 					break;
 				default:
 					return false;
