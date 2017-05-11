@@ -119,6 +119,11 @@ class TwitTwatApp : Gtk.Application {
 					}
 					playbin.volume = volume;
 					break;
+				case Gdk.Key.Escape:
+					if (is_fullscreen == true) {
+						window.unfullscreen ();
+					}
+					break;
 				default:
 					return false;
 			}
@@ -136,14 +141,6 @@ class TwitTwatApp : Gtk.Application {
 		window.destroy.connect ((event) => {
 			playbin.set_state (Gst.State.NULL);
 			playbin = null;
-		});
-
-		window.key_press_event.connect ((source, key) => {
-			if (key.keyval == Gdk.Key.Escape && is_fullscreen == true) {
-				window.unfullscreen ();
-				return true;
-			}
-			return false;
 		});
 
 		playbin = Gst.ElementFactory.make ("playbin", null);
