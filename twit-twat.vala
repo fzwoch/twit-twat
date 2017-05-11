@@ -105,24 +105,21 @@ class TwitTwatApp : Gtk.Application {
 				case Gdk.Key.plus:
 					double volume = playbin.volume;
 					volume += 0.025;
-					if (volume > 1.0) {
+					if (volume > 1.0)
 						volume = 1.0;
-					}
 					playbin.volume = volume;
 					break;
 				case Gdk.Key.KP_Subtract:
 				case Gdk.Key.minus:
 					double volume = playbin.volume;
 					volume -= 0.025;
-					if (volume < 0.0) {
+					if (volume < 0.0)
 						volume = 0.0;
-					}
 					playbin.volume = volume;
 					break;
 				case Gdk.Key.Escape:
-					if (is_fullscreen == true) {
+					if (is_fullscreen == true)
 						window.unfullscreen ();
-					}
 					break;
 				default:
 					return false;
