@@ -186,7 +186,7 @@ class TwitTwatApp : Gtk.Application {
 	}
 
 	static int main (string[] args) {
-		X.init_threads ();
+		Gtk.init (ref args);
 		Gst.init (ref args);
 
 		var app = new TwitTwatApp ();
