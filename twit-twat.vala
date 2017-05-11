@@ -99,6 +99,34 @@ class TwitTwatApp : Gtk.Application {
 			return false;
 		});
 
+		window.key_press_event.connect ((event) => {
+			switch (event.keyval) {
+				case Gdk.Key.plus:
+					if (playbin != null) {
+						double volume = playbin.volume;
+						volume += 0.1;
+						if (volume > 1.0) {
+							volume = 1.0;
+						}
+						playbin.volume = volume;
+					}
+					break;
+				case Gdk.Key.minus:
+					if (playbin != null) {
+						double volume = playbin.volume;
+						volume -= 0.1;
+						if (volume < 0.0) {
+							volume = 0.0;
+						}
+						playbin.volume = volume;
+					}
+					break;
+				default:
+					return false;
+			}
+			return true;
+		});
+
 		window.window_state_event.connect ((event) => {
 			if ((event.changed_mask & Gdk.WindowState.FULLSCREEN) != 0) {
 				is_fullscreen = !is_fullscreen;
