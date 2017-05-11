@@ -101,6 +101,7 @@ class TwitTwatApp : Gtk.Application {
 
 		window.key_press_event.connect ((event) => {
 			switch (event.keyval) {
+				case Gdk.Key.KP_Add:
 				case Gdk.Key.plus:
 					if (playbin != null) {
 						double volume = playbin.volume;
@@ -111,6 +112,7 @@ class TwitTwatApp : Gtk.Application {
 						playbin.volume = volume;
 					}
 					break;
+				case Gdk.Key.KP_Subtract:
 				case Gdk.Key.minus:
 					if (playbin != null) {
 						double volume = playbin.volume;
