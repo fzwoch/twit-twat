@@ -105,7 +105,7 @@ class TwitTwatApp : Gtk.Application {
 				case Gdk.Key.plus:
 					if (playbin != null) {
 						double volume = playbin.volume;
-						volume += 0.1;
+						volume += 0.025;
 						if (volume > 1.0) {
 							volume = 1.0;
 						}
@@ -116,7 +116,7 @@ class TwitTwatApp : Gtk.Application {
 				case Gdk.Key.minus:
 					if (playbin != null) {
 						double volume = playbin.volume;
-						volume -= 0.1;
+						volume -= 0.025;
 						if (volume < 0.0) {
 							volume = 0.0;
 						}
