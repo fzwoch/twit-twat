@@ -141,7 +141,7 @@ class TwitTwatApp : Gtk.Application {
 		});
 
 		playbin = Gst.ElementFactory.make ("playbin", null);
-		playbin.get_bus ().add_watch (Priority.DEFAULT, (bus, message) => {
+		playbin.get_bus ().set_sync_handler ((bus, message) => {
 			if (Gst.Video.is_video_overlay_prepare_window_handle_message (message)) {
 				var overlay = message.src as Gst.Video.Overlay;
 				var win = window.get_window () as Gdk.X11.Window;
@@ -175,7 +175,8 @@ class TwitTwatApp : Gtk.Application {
 				default:
 					break;
 			}
-			return true;
+			message.unref ();
+			return Gst.BusSyncReply.DROP;
 		});
 
 		playbin.uri = uri;
