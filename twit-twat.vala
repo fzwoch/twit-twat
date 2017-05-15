@@ -118,8 +118,7 @@ class TwitTwatApp : Gtk.Application {
 					playbin.volume = volume;
 					break;
 				case Gdk.Key.Escape:
-					if (is_fullscreen == true)
-						window.unfullscreen ();
+					window.unfullscreen ();
 					break;
 				default:
 					return false;
