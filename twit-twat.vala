@@ -180,7 +180,7 @@ class TwitTwatApp : Gtk.Application {
 		});
 
 		playbin.uri = uri;
-		playbin.buffer_duration = 4 * Gst.SECOND;
+		playbin.latency = 2 * Gst.SECOND;
 		playbin.connection_speed = connection_speed;
 		playbin.set_state (Gst.State.PLAYING);
 	}
