@@ -18,13 +18,13 @@
  */
 
 class TwitTwatApp : Gtk.Application {
-	static string channel = "";
-	static string client_id = "7ikopbkspr7556owm9krqmalvr2w0i4";
-	static uint64 connection_speed = 0;
-	dynamic Gst.Element playbin = null;
-	bool is_fullscreen = false;
+	private static string channel = "";
+	private static string client_id = "7ikopbkspr7556owm9krqmalvr2w0i4";
+	private static uint64 connection_speed = 0;
+	private dynamic Gst.Element playbin = null;
+	private bool is_fullscreen = false;
 
-	const GLib.OptionEntry[] options = {
+	private const GLib.OptionEntry[] options = {
 		{ "channel", 0, 0, GLib.OptionArg.STRING, ref channel, "Twitch.tv channel name", "CHANNEL" },
 		{ "client-id", 0, 0, GLib.OptionArg.STRING, ref client_id, "Twitch.tv Client-ID", "CLIENT-ID" },
 		{ "connection-speed", 0, 0, GLib.OptionArg.INT64, ref connection_speed, "Limit connection bandwidth (kbps)", "BITRATE" },
