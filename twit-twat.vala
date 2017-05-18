@@ -188,6 +188,8 @@ class TwitTwatApp : Gtk.Application {
 		Gtk.init (ref args);
 		Gst.init (ref args);
 
+		var app = new TwitTwatApp ();
+
 		try {
 			var opt_context = new OptionContext (null);
 			opt_context.add_main_entries (options, null);
@@ -196,6 +198,6 @@ class TwitTwatApp : Gtk.Application {
 		}
 		channel = channel.down ();
 
-		return new TwitTwatApp ().run (args);
+		return app.run (args);
 	}
 }
