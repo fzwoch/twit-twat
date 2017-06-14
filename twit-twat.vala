@@ -120,6 +120,9 @@ class TwitTwatApp : Gtk.Application {
 				case Gdk.Key.Escape:
 					window.unfullscreen ();
 					break;
+				case Gdk.Key.q:
+					window.close ();
+					break;
 				default:
 					return false;
 			}
