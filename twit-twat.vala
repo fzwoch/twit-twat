@@ -22,7 +22,6 @@ class TwitTwatApp : Gtk.Application {
 	private static string client_id = "7ikopbkspr7556owm9krqmalvr2w0i4";
 	private static uint64 connection_speed = 0;
 	private dynamic Gst.Element playbin = null;
-	private bool is_fullscreen = false;
 
 	private const GLib.OptionEntry[] options = {
 		{ "channel", 0, 0, GLib.OptionArg.STRING, ref channel, "Twitch.tv channel name", "CHANNEL" },
@@ -90,7 +89,7 @@ class TwitTwatApp : Gtk.Application {
 
 		window.button_press_event.connect ((event) => {
 			if (event.type == Gdk.EventType.DOUBLE_BUTTON_PRESS && event.button == 1) {
-				if (is_fullscreen == false)
+				if ((window.get_window ().get_state () & Gdk.WindowState.FULLSCREEN) == 0)
 					window.fullscreen ();
 				else
 					window.unfullscreen ();
@@ -127,14 +126,6 @@ class TwitTwatApp : Gtk.Application {
 					return false;
 			}
 			return true;
-		});
-
-		window.window_state_event.connect ((event) => {
-			if ((event.changed_mask & Gdk.WindowState.FULLSCREEN) != 0) {
-				is_fullscreen = !is_fullscreen;
-				return true;
-			}
-			return false;
 		});
 
 		window.destroy.connect ((event) => {
