@@ -177,7 +177,7 @@ class TwitTwatApp : Gtk.Application {
 							playbin.set_state (Gst.State.PLAYING);
 						return false;
 					});
-				break;
+					break;
 				default:
 					break;
 			}
