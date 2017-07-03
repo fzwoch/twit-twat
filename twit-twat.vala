@@ -165,6 +165,19 @@ class TwitTwatApp : Gtk.Application {
 						return false;
 					});
 					break;
+				case Gst.MessageType.BUFFERING:
+					int percent = 0;
+					message.parse_buffering(out percent);
+					GLib.Idle.add (() => {
+						Gst.State state = Gst.State.NULL;
+						playbin.get_state (out state, null, Gst.CLOCK_TIME_NONE);
+						if (percent < 100 && state == Gst.State.PLAYING)
+							playbin.set_state (Gst.State.PAUSED);
+						else if (percent == 100 && state == Gst.State.PAUSED)
+							playbin.set_state (Gst.State.PLAYING);
+						return false;
+					});
+				break;
 				default:
 					break;
 			}
