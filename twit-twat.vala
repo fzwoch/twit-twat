@@ -153,7 +153,7 @@ class TwitTwatApp : Gtk.Application {
 				case Gst.MessageType.WARNING:
 					GLib.Error err;
 					message.parse_warning (out err, null);
-					print (err.message + "\n");
+					warning (err.message + "\n");
 					break;
 				case Gst.MessageType.ERROR:
 					GLib.Error err;
@@ -173,7 +173,7 @@ class TwitTwatApp : Gtk.Application {
 		});
 
 		playbin.uri = uri;
-		playbin.latency = 2 * Gst.SECOND;
+		playbin.latency = 4 * Gst.SECOND;
 		playbin.connection_speed = connection_speed;
 		playbin.set_state (Gst.State.PLAYING);
 	}
