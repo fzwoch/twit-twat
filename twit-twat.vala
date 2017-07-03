@@ -167,7 +167,7 @@ class TwitTwatApp : Gtk.Application {
 					break;
 				case Gst.MessageType.BUFFERING:
 					int percent = 0;
-					message.parse_buffering(out percent);
+					message.parse_buffering (out percent);
 					GLib.Idle.add (() => {
 						Gst.State state = Gst.State.NULL;
 						playbin.get_state (out state, null, Gst.CLOCK_TIME_NONE);
