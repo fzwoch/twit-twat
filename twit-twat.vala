@@ -64,7 +64,7 @@ class TwitTwatApp : Gtk.Application {
 
 		var rand = new GLib.Rand ();
 
-		string uri = "http://usher.twitch.tv/api/channel/hls/" +
+		var uri = "http://usher.twitch.tv/api/channel/hls/" +
 			channel + ".m3u8?" +
 			"player=twitchweb&" +
 			"token=" + token + "&" +
