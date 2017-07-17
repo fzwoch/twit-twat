@@ -134,7 +134,7 @@ class TwitTwatApp : Gtk.Application {
 		});
 
 		playbin = Gst.ElementFactory.make ("playbin", null);
-		playbin.get_bus ().set_sync_handler ((bus, message) => {
+		playbin.get_bus ().add_watch (GLib.Priority.DEFAULT, (bus, message) => {
 			if (Gst.Video.is_video_overlay_prepare_window_handle_message (message)) {
 				var overlay = message.src as Gst.Video.Overlay;
 				var win = window.get_window () as Gdk.X11.Window;
@@ -142,13 +142,10 @@ class TwitTwatApp : Gtk.Application {
 			}
 			switch (message.type) {
 				case Gst.MessageType.EOS:
-					GLib.Idle.add (() => {
-						playbin.set_state (Gst.State.NULL);
-						var dialog = new Gtk.MessageDialog (window, Gtk.DialogFlags.DESTROY_WITH_PARENT, Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE, "Broadcast finished");
-						dialog.run ();
-						dialog.destroy ();
-						return false;
-					});
+					playbin.set_state (Gst.State.NULL);
+					var dialog = new Gtk.MessageDialog (window, Gtk.DialogFlags.DESTROY_WITH_PARENT, Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE, "Broadcast finished");
+					dialog.run ();
+					dialog.destroy ();
 					break;
 				case Gst.MessageType.WARNING:
 					GLib.Error err;
@@ -158,31 +155,24 @@ class TwitTwatApp : Gtk.Application {
 				case Gst.MessageType.ERROR:
 					GLib.Error err;
 					message.parse_error (out err, null);
-					GLib.Idle.add (() => {
-						var dialog = new Gtk.MessageDialog (window, Gtk.DialogFlags.DESTROY_WITH_PARENT, Gtk.MessageType.ERROR, Gtk.ButtonsType.CLOSE, err.message);
-						dialog.run ();
-						dialog.destroy ();
-						return false;
-					});
+					var dialog = new Gtk.MessageDialog (window, Gtk.DialogFlags.DESTROY_WITH_PARENT, Gtk.MessageType.ERROR, Gtk.ButtonsType.CLOSE, err.message);
+					dialog.run ();
+					dialog.destroy ();
 					break;
 				case Gst.MessageType.BUFFERING:
 					int percent = 0;
 					message.parse_buffering (out percent);
-					GLib.Idle.add (() => {
-						Gst.State state = Gst.State.NULL;
-						playbin.get_state (out state, null, Gst.CLOCK_TIME_NONE);
-						if (percent < 100 && state == Gst.State.PLAYING)
-							playbin.set_state (Gst.State.PAUSED);
-						else if (percent == 100 && state == Gst.State.PAUSED)
-							playbin.set_state (Gst.State.PLAYING);
-						return false;
-					});
+					Gst.State state = Gst.State.NULL;
+					playbin.get_state (out state, null, Gst.CLOCK_TIME_NONE);
+					if (percent < 100 && state == Gst.State.PLAYING)
+						playbin.set_state (Gst.State.PAUSED);
+					else if (percent == 100 && state == Gst.State.PAUSED)
+						playbin.set_state (Gst.State.PLAYING);
 					break;
 				default:
 					break;
 			}
-			message.unref ();
-			return Gst.BusSyncReply.DROP;
+			return true;
 		});
 
 		playbin.uri = uri;
