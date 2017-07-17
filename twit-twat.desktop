@@ -1,0 +1,5 @@
+[Desktop Entry]
+Name=Twit-Twat
+Exec=twit-twat
+Icon=/usr/local/share/twit-twat/twit-twat.png
+Type=Application

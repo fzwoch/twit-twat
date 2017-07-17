@@ -11,3 +11,6 @@ executable('twit-twat', 'twit-twat.vala',
 	],
 	install : true
 )
+
+install_data('twit-twat.desktop', install_dir : 'share/applications')
+install_data('twit-twat.png', install_dir : 'share/twit-twat')
