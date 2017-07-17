@@ -89,10 +89,12 @@ class TwitTwatApp : Gtk.Application {
 
 		window.button_press_event.connect ((event) => {
 			if (event.type == Gdk.EventType.DOUBLE_BUTTON_PRESS && event.button == 1) {
-				if ((window.get_window ().get_state () & Gdk.WindowState.FULLSCREEN) == 0)
-					window.fullscreen ();
-				else
+				if ((window.get_window ().get_state () & Gdk.WindowState.MAXIMIZED) != 0)
+					window.unmaximize ();
+				else if ((window.get_window ().get_state () & Gdk.WindowState.FULLSCREEN) != 0)
 					window.unfullscreen ();
+				else
+					window.fullscreen ();
 				return true;
 			}
 			return false;
