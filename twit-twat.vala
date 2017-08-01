@@ -157,6 +157,7 @@ class TwitTwatApp : Gtk.Application {
 					break;
 				case Gst.MessageType.ERROR:
 					GLib.Error err;
+					playbin.set_state (Gst.State.NULL);
 					message.parse_error (out err, null);
 					var dialog = new Gtk.MessageDialog (window, Gtk.DialogFlags.DESTROY_WITH_PARENT, Gtk.MessageType.ERROR, Gtk.ButtonsType.CLOSE, err.message);
 					dialog.run ();
