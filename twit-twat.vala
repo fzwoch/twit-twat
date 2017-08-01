@@ -153,7 +153,7 @@ class TwitTwatApp : Gtk.Application {
 				case Gst.MessageType.WARNING:
 					GLib.Error err;
 					message.parse_warning (out err, null);
-					warning (err.message + "\n");
+					warning (err.message);
 					break;
 				case Gst.MessageType.ERROR:
 					GLib.Error err;
