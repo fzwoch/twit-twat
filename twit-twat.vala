@@ -119,6 +119,7 @@ class TwitTwatApp : Gtk.Application {
 					playbin.volume = volume;
 					break;
 				case Gdk.Key.Escape:
+					window.unmaximize ();
 					window.unfullscreen ();
 					break;
 				case Gdk.Key.q:
