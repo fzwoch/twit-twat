@@ -18,59 +18,13 @@
  */
 
 class TwitTwatApp : Gtk.Application {
-	private static string channel = "";
-	private static string client_id = "7ikopbkspr7556owm9krqmalvr2w0i4";
-	private static uint64 connection_speed = 0;
+	private string channel = "";
+	private const string client_id = "7ikopbkspr7556owm9krqmalvr2w0i4";
+	private uint64 connection_speed = 0;
 	private dynamic Gst.Element playbin = null;
-
-	private const GLib.OptionEntry[] options = {
-		{ "channel", 0, 0, GLib.OptionArg.STRING, ref channel, "Twitch.tv channel name", "CHANNEL" },
-		{ "client-id", 0, 0, GLib.OptionArg.STRING, ref client_id, "Twitch.tv Client-ID", "CLIENT-ID" },
-		{ "connection-speed", 0, 0, GLib.OptionArg.INT64, ref connection_speed, "Limit connection bandwidth (kbps)", "BITRATE" },
-		{ null }
-	};
+	private Gtk.ApplicationWindow window = null;
 
 	public override void activate () {
-		var session = new Soup.Session ();
-		var message = new Soup.Message ("GET", "https://api.twitch.tv/api/channels/" + channel + "/access_token");
-
-		message.request_headers.append ("Client-ID", client_id);
-
-		InputStream stream = null;
-		try {
-			session.ssl_strict = false;
-			stream = session.send (message);
-		} catch (GLib.Error e) {
-			warning (e.message);
-		}
-
-		var data_stream = new DataInputStream (stream);
-		var parser = new Json.Parser ();
-		try {
-			parser.load_from_stream (data_stream);
-		} catch (GLib.Error e) {
-			warning (e.message);
-		}
-
-		var reader = new Json.Reader (parser.get_root ());
-
-		reader.read_member ("sig");
-		var sig = reader.get_string_value ();
-		reader.end_member ();
-
-		reader.read_member ("token");
-		var token = reader.get_string_value ();
-		reader.end_member ();
-
-		var rand = new GLib.Rand ();
-
-		var uri = "http://usher.twitch.tv/api/channel/hls/" +
-			channel + ".m3u8?" +
-			"player=twitchweb&" +
-			"token=" + token + "&" +
-			"sig=" + sig + "&" +
-			"allow_audio_only=true&allow_source=true&type=any&p=" + rand.int_range (0, 999999).to_string ();
-
 		var css = new Gtk.CssProvider ();
 		try {
 			css.load_from_data ("window window { background-color: black; }");
@@ -80,7 +34,7 @@ class TwitTwatApp : Gtk.Application {
 
 		Gtk.StyleContext.add_provider_for_screen (Gdk.Screen.get_default (), css, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION);
 
-		var window = new Gtk.ApplicationWindow (this);
+		window = new Gtk.ApplicationWindow (this);
 		window.title = "Twit-Twat";
 		window.set_hide_titlebar_when_maximized (true);
 		window.set_default_size (960, 540);
@@ -125,6 +79,20 @@ class TwitTwatApp : Gtk.Application {
 				case Gdk.Key.q:
 					window.close ();
 					break;
+				case Gdk.Key.g:
+					var entry = new Gtk.Entry ();
+					var dialog = new Gtk.Dialog.with_buttons ("Enter channel", window, Gtk.DialogFlags.DESTROY_WITH_PARENT, null);
+					dialog.get_content_area ().add (entry);
+					dialog.show_all ();
+					entry.text = channel;
+					entry.activate.connect (() => {
+						if (entry.text != "") {
+							channel = entry.text;
+							play ();
+						}
+						dialog.destroy ();
+					});
+					break;
 				default:
 					return false;
 			}
@@ -132,9 +100,60 @@ class TwitTwatApp : Gtk.Application {
 		});
 
 		window.destroy.connect ((event) => {
+			if (playbin != null) {
+				playbin.set_state (Gst.State.NULL);
+				playbin = null;
+			}
+		});
+	}
+
+	private void play () {
+		if (playbin != null) {
 			playbin.set_state (Gst.State.NULL);
 			playbin = null;
-		});
+		}
+
+		channel = channel.down ();
+
+		var session = new Soup.Session ();
+		var message = new Soup.Message ("GET", "https://api.twitch.tv/api/channels/" + channel + "/access_token");
+
+		message.request_headers.append ("Client-ID", client_id);
+
+		InputStream stream = null;
+		try {
+			session.ssl_strict = false;
+			stream = session.send (message);
+		} catch (GLib.Error e) {
+			warning (e.message);
+		}
+
+		var data_stream = new DataInputStream (stream);
+		var parser = new Json.Parser ();
+		try {
+			parser.load_from_stream (data_stream);
+		} catch (GLib.Error e) {
+			warning (e.message);
+		}
+
+		var reader = new Json.Reader (parser.get_root ());
+
+		reader.read_member ("sig");
+		var sig = reader.get_string_value ();
+		reader.end_member ();
+
+		reader.read_member ("token");
+		var token = reader.get_string_value ();
+		reader.end_member ();
+
+		var rand = new GLib.Rand ();
+
+		var uri = "http://usher.twitch.tv/api/channel/hls/" +
+			channel + ".m3u8?" +
+			"player=twitchweb&" +
+			"token=" + token + "&" +
+			"sig=" + sig + "&" +
+			"allow_audio_only=true&allow_source=true&type=any&p=" + rand.int_range (0, 999999).to_string ();
 
 		playbin = Gst.ElementFactory.make ("playbin", null);
 
@@ -189,16 +208,6 @@ class TwitTwatApp : Gtk.Application {
 		Gtk.init (ref args);
 		Gst.init (ref args);
 
-		var app = new TwitTwatApp ();
-
-		try {
-			var opt_context = new OptionContext (null);
-			opt_context.add_main_entries (options, null);
-			opt_context.parse (ref args);
-		} catch (GLib.OptionError e) {
-		}
-		channel = channel.down ();
-
-		return app.run (args);
+		return new TwitTwatApp ().run (args);
 	}
 }
