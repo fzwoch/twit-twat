@@ -36,7 +36,7 @@ class TwitTwatApp : Gtk.Application {
 
 		window = new Gtk.ApplicationWindow (this);
 		window.title = "Twit-Twat";
-		window.set_hide_titlebar_when_maximized (true);
+		window.hide_titlebar_when_maximized = true;
 		window.set_default_size (960, 540);
 		window.set_position (Gtk.WindowPosition.CENTER);
 		window.show_all ();
