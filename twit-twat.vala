@@ -92,7 +92,10 @@ class TwitTwatApp : Gtk.Application {
 					entry.activate.connect (() => {
 						if (entry.text != "") {
 							channel = entry.text;
-							play ();
+							GLib.Idle.add (() => {
+								play ();
+								return false;
+							});
 						}
 						dialog.destroy ();
 					});
