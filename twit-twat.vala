@@ -84,7 +84,7 @@ class TwitTwatApp : Gtk.Application {
 					break;
 				case Gdk.Key.g:
 					var entry = new Gtk.Entry ();
-					var dialog = new Gtk.Dialog.with_buttons ("Enter channel", window, Gtk.DialogFlags.DESTROY_WITH_PARENT, null);
+					var dialog = new Gtk.Dialog.with_buttons ("Enter channel", window, Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT, null);
 					dialog.get_content_area ().add (entry);
 					dialog.resizable = false;
 					entry.text = channel;
