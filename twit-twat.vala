@@ -90,9 +90,9 @@ class TwitTwatApp : Gtk.Application {
 					entry.text = channel;
 					entry.activate.connect (() => {
 						if (entry.text != "") {
-							channel = entry.text;
+							channel = entry.text.down ();
 							GLib.Idle.add (() => {
-								play ();
+								get_access_token ();
 								return false;
 							});
 						}
@@ -114,31 +114,19 @@ class TwitTwatApp : Gtk.Application {
 		});
 	}
 
-	private void play () {
-		if (playbin != null) {
-			playbin.set_state (Gst.State.NULL);
-			playbin = null;
-		}
-
-		channel = channel.down ();
-
+	private void get_access_token () {
 		var session = new Soup.Session ();
 		var message = new Soup.Message ("GET", "https://api.twitch.tv/api/channels/" + channel + "/access_token");
 
 		message.request_headers.append ("Client-ID", client_id);
+		session.ssl_strict = false;
+		session.queue_message (message, play_stream);
+	}
 
-		InputStream stream = null;
-		try {
-			session.ssl_strict = false;
-			stream = session.send (message);
-		} catch (GLib.Error e) {
-			warning (e.message);
-		}
-
-		var data_stream = new DataInputStream (stream);
+	private void play_stream (Soup.Session session, Soup.Message message) {
 		var parser = new Json.Parser ();
 		try {
-			parser.load_from_stream (data_stream);
+			parser.load_from_data ((string) message.response_body.data);
 		} catch (GLib.Error e) {
 			warning (e.message);
 		}
@@ -161,6 +149,11 @@ class TwitTwatApp : Gtk.Application {
 			"token=" + token + "&" +
 			"sig=" + sig + "&" +
 			"allow_audio_only=true&allow_source=true&type=any&p=" + rand.int_range (0, 999999).to_string ();
+
+		if (playbin != null) {
+			playbin.set_state (Gst.State.NULL);
+			playbin = null;
+		}
 
 		playbin = Gst.ElementFactory.make ("playbin", null);
 
