@@ -150,6 +150,13 @@ class TwitTwatApp : Gtk.Application {
 			"sig=" + sig + "&" +
 			"allow_audio_only=true&allow_source=true&type=any&p=" + rand.int_range (0, 999999).to_string ();
 
+		if (token == null) {
+			var dialog = new Gtk.MessageDialog (window, Gtk.DialogFlags.DESTROY_WITH_PARENT, Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE, "Invalid channel");
+			dialog.run ();
+			dialog.destroy ();
+			return;
+		}
+
 		if (playbin != null) {
 			playbin.set_state (Gst.State.NULL);
 			playbin = null;
