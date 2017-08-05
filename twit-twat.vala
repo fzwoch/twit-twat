@@ -92,7 +92,7 @@ class TwitTwatApp : Gtk.Application {
 						if (entry.text != "") {
 							channel = entry.text.down ();
 							GLib.Idle.add (() => {
-								get_access_token ();
+								online_check ();
 								return false;
 							});
 						}
@@ -114,12 +114,38 @@ class TwitTwatApp : Gtk.Application {
 		});
 	}
 
-	private void get_access_token () {
+	private void online_check () {
 		var session = new Soup.Session ();
-		var message = new Soup.Message ("GET", "https://api.twitch.tv/api/channels/" + channel + "/access_token");
+		var message = new Soup.Message ("GET", "https://api.twitch.tv/kraken/streams?channel=" + channel);
 
 		message.request_headers.append ("Client-ID", client_id);
 		session.ssl_strict = false;
+		session.queue_message (message, get_access_token);
+	}
+
+	private void get_access_token (Soup.Session session, Soup.Message msg) {
+		var parser = new Json.Parser ();
+		try {
+			parser.load_from_data ((string) msg.response_body.data);
+		} catch (GLib.Error e) {
+			warning (e.message);
+		}
+
+		var reader = new Json.Reader (parser.get_root ());
+
+		reader.read_member ("_total");
+		var total = reader.get_int_value ();
+		reader.end_member ();
+
+		if (total != 1) {
+			var dialog = new Gtk.MessageDialog (window, Gtk.DialogFlags.DESTROY_WITH_PARENT, Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE, "Channel offline");
+			dialog.run ();
+			dialog.destroy ();
+			return;
+		}
+
+		var message = new Soup.Message ("GET", "https://api.twitch.tv/api/channels/" + channel + "/access_token");
+		message.request_headers.append ("Client-ID", client_id);
 		session.queue_message (message, play_stream);
 	}
 
