@@ -92,7 +92,12 @@ class TwitTwatApp : Gtk.Application {
 						if (entry.text != "") {
 							channel = entry.text.down ();
 							GLib.Idle.add (() => {
-								online_check ();
+								var session = new Soup.Session ();
+								var message = new Soup.Message ("GET", "https://api.twitch.tv/kraken/streams?channel=" + channel);
+
+								message.request_headers.append ("Client-ID", client_id);
+								session.ssl_strict = false;
+								session.queue_message (message, get_access_token);
 								return false;
 							});
 						}
@@ -112,15 +117,6 @@ class TwitTwatApp : Gtk.Application {
 				playbin = null;
 			}
 		});
-	}
-
-	private void online_check () {
-		var session = new Soup.Session ();
-		var message = new Soup.Message ("GET", "https://api.twitch.tv/kraken/streams?channel=" + channel);
-
-		message.request_headers.append ("Client-ID", client_id);
-		session.ssl_strict = false;
-		session.queue_message (message, get_access_token);
 	}
 
 	private void get_access_token (Soup.Session session, Soup.Message msg) {
