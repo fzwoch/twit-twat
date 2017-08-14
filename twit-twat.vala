@@ -211,7 +211,7 @@ class TwitTwatApp : Gtk.Application {
 					playbin.get_state (out state, null, Gst.CLOCK_TIME_NONE);
 					if (percent < 100 && state == Gst.State.PLAYING)
 						playbin.set_state (Gst.State.PAUSED);
-					else if (percent == 100 && state == Gst.State.PAUSED)
+					else if (percent == 100 && state != Gst.State.PLAYING)
 						playbin.set_state (Gst.State.PLAYING);
 					break;
 				default:
