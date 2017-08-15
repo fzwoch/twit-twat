@@ -110,7 +110,7 @@ class TwitTwatApp : Gtk.Application {
 					var dialog = new Gtk.Dialog.with_buttons ("Max kbps", window, Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT, null);
 					dialog.get_content_area ().add (entry);
 					dialog.resizable = false;
-					entry.text = channel;
+					entry.text = connection_speed.to_string ();
 					entry.activate.connect (() => {
 						connection_speed = playbin.connection_speed = entry.text.to_int ();
 						dialog.destroy ();
