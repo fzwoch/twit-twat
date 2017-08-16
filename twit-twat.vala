@@ -91,15 +91,13 @@ class TwitTwatApp : Gtk.Application {
 					entry.activate.connect (() => {
 						if (entry.text != "") {
 							channel = entry.text.down ();
-							GLib.Idle.add (() => {
-								var session = new Soup.Session ();
-								var message = new Soup.Message ("GET", "https://api.twitch.tv/kraken/streams?channel=" + channel);
 
-								message.request_headers.append ("Client-ID", client_id);
-								session.ssl_strict = false;
-								session.queue_message (message, get_access_token);
-								return false;
-							});
+							var session = new Soup.Session ();
+							var message = new Soup.Message ("GET", "https://api.twitch.tv/kraken/streams?channel=" + channel);
+
+							message.request_headers.append ("Client-ID", client_id);
+							session.ssl_strict = false;
+							session.queue_message (message, get_access_token);
 						}
 						dialog.destroy ();
 					});
