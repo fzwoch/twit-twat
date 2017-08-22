@@ -61,8 +61,7 @@ class TwitTwatApp : Gtk.Application {
 						break;
 					double volume = playbin.volume;
 					volume += 0.0125;
-					volume.clamp (0.0, 1.0);
-					playbin.volume = volume;
+					playbin.volume = volume.clamp (0.0, 1.0);
 					break;
 				case Gdk.Key.KP_Subtract:
 				case Gdk.Key.minus:
@@ -70,8 +69,7 @@ class TwitTwatApp : Gtk.Application {
 						break;
 					double volume = playbin.volume;
 					volume -= 0.0125;
-					volume.clamp (0.0, 1.0);
-					playbin.volume = volume;
+					playbin.volume = volume.clamp (0.0, 1.0);
 					break;
 				case Gdk.Key.Escape:
 					window.unmaximize ();
