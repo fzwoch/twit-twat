@@ -19,11 +19,3 @@ If you use the NVIDIA proprietary driver you need to install the VDPAU <-> VAAPI
 ```bash
 $ sudo apt install vdpau-va-driver
 ```
-
-Also, this driver is not actively maintained and does not support all VAAPI features. Therefore it is not white listed in GStreamers's VAAPI support.
-
-For actually getting VAAPI working you also need to have the following environment variable set:
-
-```bash
-$ export GST_VAAPI_ALL_DRIVERS=1
-```
