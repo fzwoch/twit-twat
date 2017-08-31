@@ -106,7 +106,7 @@ class TwitTwatApp : Gtk.Application {
 					dialog.resizable = false;
 					entry.text = connection_speed.to_string ();
 					entry.activate.connect (() => {
-						connection_speed = entry.text.to_int ();
+						connection_speed = int.parse (entry.text);
 						dialog.destroy ();
 					});
 					dialog.show_all ();
