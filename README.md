@@ -19,3 +19,13 @@ If you use the NVIDIA proprietary driver you need to install the VDPAU <-> VAAPI
 ```bash
 $ sudo apt install vdpau-va-driver
 ```
+
+Controls
+--------
+
+- **G:**  channel selection
+- **S:** bandwidth limit
+- **+/-:** volume
+- **Q:** quit
+- **ESC:** exit fullscreen
+- **Double Click:** toggle fullscreen
