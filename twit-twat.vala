@@ -23,6 +23,7 @@ class TwitTwatApp : Gtk.Application {
 	private uint64 connection_speed = 0;
 	private dynamic Gst.Element playbin = null;
 	private Gtk.ApplicationWindow window = null;
+	private Gtk.DrawingArea area = null;
 
 	public override void activate () {
 		var css = new Gtk.CssProvider ();
@@ -38,6 +39,10 @@ class TwitTwatApp : Gtk.Application {
 		window.title = "Twit-Twat";
 		window.hide_titlebar_when_maximized = true;
 		window.set_default_size (960, 540);
+
+		area = new Gtk.DrawingArea ();
+		window.add (area);
+
 		window.show_all ();
 
 		window.button_press_event.connect ((event) => {
@@ -186,7 +191,7 @@ class TwitTwatApp : Gtk.Application {
 		playbin = Gst.ElementFactory.make ("playbin", null);
 
 		var overlay = playbin as Gst.Video.Overlay;
-		var win = window.get_window () as Gdk.X11.Window;
+		var win = area.get_window () as Gdk.X11.Window;
 		overlay.set_window_handle ((uint*)win.get_xid ());
 
 		playbin.get_bus ().add_watch (GLib.Priority.DEFAULT, (bus, message) => {
