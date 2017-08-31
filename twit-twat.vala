@@ -41,6 +41,7 @@ class TwitTwatApp : Gtk.Application {
 		window.set_default_size (960, 540);
 
 		area = new Gtk.DrawingArea ();
+		area.add_events (Gdk.EventMask.BUTTON_PRESS_MASK);
 		window.add (area);
 
 		window.show_all ();
