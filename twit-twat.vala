@@ -26,15 +26,6 @@ class TwitTwatApp : Gtk.Application {
 	private Gtk.DrawingArea area = null;
 
 	public override void activate () {
-		var css = new Gtk.CssProvider ();
-		try {
-			css.load_from_data ("window window { background-color: black; }");
-		} catch (GLib.Error e) {
-			warning (e.message);
-		}
-
-		Gtk.StyleContext.add_provider_for_screen (Gdk.Screen.get_default (), css, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION);
-
 		window = new Gtk.ApplicationWindow (this);
 		window.title = "Twit-Twat";
 		window.hide_titlebar_when_maximized = true;
