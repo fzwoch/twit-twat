@@ -116,6 +116,11 @@ class TwitTwatApp : Gtk.Application {
 				playbin = null;
 			}
 		});
+
+		var event = new Gdk.Event (Gdk.EventType.KEY_PRESS);
+		event.key.keyval = Gdk.Key.g;
+		event.key.window = window.get_window ();
+		event.put ();
 	}
 
 	private void get_access_token (Soup.Session session, Soup.Message msg) {
