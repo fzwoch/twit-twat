@@ -68,9 +68,11 @@ class TwitTwatApp : Gtk.Application {
 					window.unmaximize ();
 					window.unfullscreen ();
 					break;
+				case Gdk.Key.Q:
 				case Gdk.Key.q:
 					window.close ();
 					break;
+				case Gdk.Key.G:
 				case Gdk.Key.g:
 					var entry = new Gtk.Entry ();
 					var dialog = new Gtk.Dialog.with_buttons ("Enter channel", window, Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT, null);
@@ -92,6 +94,7 @@ class TwitTwatApp : Gtk.Application {
 					});
 					dialog.show_all ();
 					break;
+				case Gdk.Key.S:
 				case Gdk.Key.s:
 					var entry = new Gtk.Entry ();
 					var dialog = new Gtk.Dialog.with_buttons ("Max kbps", window, Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT, null);
@@ -103,6 +106,15 @@ class TwitTwatApp : Gtk.Application {
 						dialog.destroy ();
 					});
 					dialog.show_all ();
+					break;
+				case Gdk.Key.H:
+				case Gdk.Key.h:
+					var dialog = new Gtk.MessageDialog.with_markup (window, Gtk.DialogFlags.DESTROY_WITH_PARENT, Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE,
+						"<b>G</b>\t\tGo to channel\n<b>+/-</b>\t\tChange volume\n<b>D-Click</b>\tToggle full screen\n<b>Esc</b>\t\tExit full screen\n<b>S</b>\t\tSet bandwidth limit\n<b>H</b>\t\tControls info\n<b>Q</b>\t\tQuit"
+					);
+					dialog.title = "Controls";
+					dialog.run ();
+					dialog.destroy ();
 					break;
 				default:
 					return false;

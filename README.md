@@ -23,9 +23,10 @@ $ sudo apt install vdpau-va-driver
 Controls
 --------
 
-- **G:**  channel selection
+- **G:** channel selection
 - **S:** bandwidth limit
 - **+/-:** volume
+- **H** controls info
 - **Q:** quit
 - **ESC:** exit fullscreen
 - **Double Click:** toggle fullscreen
