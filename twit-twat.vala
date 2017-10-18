@@ -70,6 +70,10 @@ class TwitTwatApp : Gtk.Application {
 					break;
 				case Gdk.Key.Q:
 				case Gdk.Key.q:
+					if (playbin != null) {
+						playbin.set_state (Gst.State.NULL);
+						playbin = null;
+					}
 					window.close ();
 					break;
 				case Gdk.Key.G:
@@ -120,13 +124,6 @@ class TwitTwatApp : Gtk.Application {
 					return false;
 			}
 			return true;
-		});
-
-		window.destroy.connect ((event) => {
-			if (playbin != null) {
-				playbin.set_state (Gst.State.NULL);
-				playbin = null;
-			}
 		});
 
 		var event = new Gdk.Event (Gdk.EventType.KEY_PRESS);
