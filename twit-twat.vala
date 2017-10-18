@@ -79,7 +79,7 @@ class TwitTwatApp : Gtk.Application {
 					entry.text = channel;
 					entry.activate.connect (() => {
 						if (entry.text != "") {
-							channel = entry.text.down ();
+							channel = entry.text.strip ().down ();
 
 							var session = new Soup.Session ();
 							var message = new Soup.Message ("GET", "https://api.twitch.tv/kraken/streams?channel=" + channel);
