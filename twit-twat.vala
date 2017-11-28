@@ -25,6 +25,11 @@ class TwitTwatApp : Gtk.Application {
 	private Gtk.ApplicationWindow window = null;
 	private Gtk.DrawingArea area = null;
 
+	private void element_setup (Gst.Element playbin, dynamic Gst.Element element) {
+		if (element.get_factory () == Gst.ElementFactory.find ("glimagesink"))
+			element.handle_events = false;
+	}
+
 	public override void activate () {
 		window = new Gtk.ApplicationWindow (this);
 		window.title = "Twit-Twat";
@@ -203,6 +208,8 @@ class TwitTwatApp : Gtk.Application {
 		var win = area.get_window () as Gdk.X11.Window;
 		overlay.set_window_handle ((uint*)win.get_xid ());
 
+		playbin.element_setup.connect (element_setup);
+
 		playbin.get_bus ().add_watch (GLib.Priority.DEFAULT, (bus, message) => {
 			switch (message.type) {
 				case Gst.MessageType.EOS:
@@ -253,10 +260,12 @@ class TwitTwatApp : Gtk.Application {
 	}
 
 	static int main (string[] args) {
-		Environment.set_variable ("GST_VAAPI_ALL_DRIVERS", "1", true);
-
 		Gtk.init (ref args);
 		Gst.init (ref args);
+
+		var nvdec = Gst.Registry.get ().lookup_feature ("nvdec");
+		if (nvdec != null)
+			nvdec.set_rank (Gst.Rank.PRIMARY << 1);
 
 		return new TwitTwatApp ().run (args);
 	}
