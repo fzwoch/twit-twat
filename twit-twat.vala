@@ -205,8 +205,12 @@ class TwitTwatApp : Gtk.Application {
 		playbin = Gst.ElementFactory.make ("playbin", null);
 
 		var overlay = playbin as Gst.Video.Overlay;
-		var win = area.get_window () as Gdk.X11.Window;
-		overlay.set_window_handle ((uint*)win.get_xid ());
+
+		if (area.get_window () is Gdk.X11.Window) {
+			var win = area.get_window () as Gdk.X11.Window;
+			overlay.set_window_handle ((uint*)win.get_xid ());
+		}
+		// FIXME: else wayland..
 
 		playbin.element_setup.connect (element_setup);
 
