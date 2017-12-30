@@ -43,7 +43,7 @@ class TwitTwatApp : Gtk.Application {
 			if (playbin != null) {
 				Gst.State state = Gst.State.NULL;
 				playbin.get_state (out state, null, Gst.CLOCK_TIME_NONE);
-				if (state != Gst.State.NULL)
+				if (state == Gst.State.NULL)
 					cr.paint ();
 				return true;
 			}
