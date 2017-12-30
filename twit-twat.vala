@@ -36,6 +36,20 @@ class TwitTwatApp : Gtk.Application {
 		window.hide_titlebar_when_maximized = true;
 		window.set_default_size (960, 540);
 
+		area = new Gtk.DrawingArea ();
+		area.add_events (Gdk.EventMask.BUTTON_PRESS_MASK);
+
+		area.draw.connect (() => {
+			if (playbin != null) {
+				Gst.State state = Gst.State.NULL;
+				playbin.get_state (out state, null, Gst.CLOCK_TIME_NONE);
+				if (state != Gst.State.NULL)
+					return true;
+			}
+			return false;
+		});
+
+		window.add (area);
 		window.show_all ();
 
 		window.button_press_event.connect ((event) => {
@@ -195,13 +209,6 @@ class TwitTwatApp : Gtk.Application {
 			playbin = null;
 		}
 
-		if (area == null) {
-			area = new Gtk.DrawingArea ();
-			area.add_events (Gdk.EventMask.BUTTON_PRESS_MASK);
-			window.add (area);
-			area.show ();
-		}
-
 		playbin = Gst.ElementFactory.make ("playbin", null);
 
 		var overlay = playbin as Gst.Video.Overlay;
@@ -218,9 +225,6 @@ class TwitTwatApp : Gtk.Application {
 			switch (message.type) {
 				case Gst.MessageType.EOS:
 					playbin.set_state (Gst.State.NULL);
-					playbin = null;
-					area.destroy ();
-					area = null;
 					var dialog = new Gtk.MessageDialog (window, Gtk.DialogFlags.DESTROY_WITH_PARENT, Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE, "Broadcast finished");
 					dialog.run ();
 					dialog.destroy ();
@@ -233,9 +237,6 @@ class TwitTwatApp : Gtk.Application {
 				case Gst.MessageType.ERROR:
 					GLib.Error err;
 					playbin.set_state (Gst.State.NULL);
-					playbin = null;
-					area.destroy ();
-					area = null;
 					message.parse_error (out err, null);
 					var dialog = new Gtk.MessageDialog (window, Gtk.DialogFlags.DESTROY_WITH_PARENT, Gtk.MessageType.ERROR, Gtk.ButtonsType.CLOSE, err.message);
 					dialog.run ();
