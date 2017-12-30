@@ -39,12 +39,13 @@ class TwitTwatApp : Gtk.Application {
 		area = new Gtk.DrawingArea ();
 		area.add_events (Gdk.EventMask.BUTTON_PRESS_MASK);
 
-		area.draw.connect (() => {
+		area.draw.connect ((cr) => {
 			if (playbin != null) {
 				Gst.State state = Gst.State.NULL;
 				playbin.get_state (out state, null, Gst.CLOCK_TIME_NONE);
 				if (state != Gst.State.NULL)
-					return true;
+					cr.paint ();
+				return true;
 			}
 			return false;
 		});
