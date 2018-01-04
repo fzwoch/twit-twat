@@ -149,6 +149,7 @@ class TwitTwatApp : Gtk.Application {
 		var event = new Gdk.Event (Gdk.EventType.KEY_PRESS);
 		event.key.keyval = Gdk.Key.g;
 		event.key.window = window.get_window ();
+		event.set_device (Gdk.Display.get_default ().get_default_seat ().get_keyboard ());
 		event.put ();
 	}
 
