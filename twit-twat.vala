@@ -45,6 +45,7 @@ class TwitTwatApp : Gtk.Application {
 
 		playbin = Gst.ElementFactory.make ("playbin", null);
 		playbin.video_sink = bin;
+		playbin.latency = 2 * Gst.SECOND;
 
 		playbin.get_bus ().add_watch (GLib.Priority.DEFAULT, (bus, message) => {
 			switch (message.type) {
@@ -236,11 +237,8 @@ class TwitTwatApp : Gtk.Application {
 			"sig=" + sig + "&" +
 			"allow_audio_only=true&allow_source=true&type=any&p=" + rand.int_range (0, 999999).to_string ();
 
-		if (playbin != null)
-			playbin.set_state (Gst.State.NULL);
-
+		playbin.set_state (Gst.State.NULL);
 		playbin.uri = uri;
-		playbin.latency = 2 * Gst.SECOND;
 		playbin.connection_speed = connection_speed;
 		playbin.set_state (Gst.State.PAUSED);
 	}
