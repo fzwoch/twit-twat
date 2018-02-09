@@ -139,7 +139,7 @@ class TwitTwatApp : Gtk.Application {
 							channel = entry.text.strip ().down ();
 
 							var session = new Soup.Session ();
-							var message = new Soup.Message ("GET", "https://api.twitch.tv/kraken/streams?channel=" + channel);
+							var message = new Soup.Message ("GET", "https://api.twitch.tv/helix/streams?user_login=" + channel);
 
 							message.request_headers.append ("Client-ID", client_id);
 							session.ssl_strict = false;
@@ -194,11 +194,11 @@ class TwitTwatApp : Gtk.Application {
 
 		var reader = new Json.Reader (parser.get_root ());
 
-		reader.read_member ("_total");
-		var total = reader.get_int_value ();
+		reader.read_member ("data");
+		var total = reader.count_elements ();
 		reader.end_member ();
 
-		if (total != 1) {
+		if (total == 0) {
 			var dialog = new Gtk.MessageDialog (window, Gtk.DialogFlags.DESTROY_WITH_PARENT, Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE, "Channel offline");
 			dialog.run ();
 			dialog.destroy ();
