@@ -228,14 +228,12 @@ class TwitTwatApp : Gtk.Application {
 		var token = reader.get_string_value ();
 		reader.end_member ();
 
-		var rand = new GLib.Rand ();
-
 		var uri = "http://usher.twitch.tv/api/channel/hls/" +
 			channel + ".m3u8?" +
 			"player=twitchweb&" +
 			"token=" + token + "&" +
 			"sig=" + sig + "&" +
-			"allow_audio_only=true&allow_source=true&type=any&p=" + rand.int_range (0, 999999).to_string ();
+			"allow_audio_only=true&allow_source=true&type=any&p=" + GLib.Random.int_range (0, 999999).to_string ();
 
 		playbin.set_state (Gst.State.NULL);
 		playbin.uri = uri;
