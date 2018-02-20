@@ -45,7 +45,6 @@ class TwitTwatApp : Gtk.Application {
 
 		playbin = Gst.ElementFactory.make ("playbin", null);
 		playbin.video_sink = bin;
-		playbin.latency = 2 * Gst.SECOND;
 
 		playbin.get_bus ().add_watch (GLib.Priority.DEFAULT, (bus, message) => {
 			switch (message.type) {
