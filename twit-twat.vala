@@ -242,8 +242,7 @@ class TwitTwatApp : Gtk.Application {
 	}
 
 	static int main (string[] args) {
-		X.init_threads();
-		Gtk.init (ref args);
+		X.init_threads ();
 		Gst.init (ref args);
 
 		var nvdec = Gst.Registry.get ().lookup_feature ("nvdec");
