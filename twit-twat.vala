@@ -17,65 +17,68 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+ using Gtk;
+ using Gdk;
+ using Gst;
+
 class TwitTwatApp : Gtk.Application {
 	string channel = "";
 	const string client_id = "7ikopbkspr7556owm9krqmalvr2w0i4";
 	uint64 connection_speed = 0;
-	dynamic Gst.Element playbin = null;
-	Gtk.ApplicationWindow window = null;
+	dynamic Element playbin = null;
+	ApplicationWindow window = null;
 
 	public override void activate () {
-		window = new Gtk.ApplicationWindow (this);
+		window = new ApplicationWindow (this);
 		window.title = "Twit-Twat";
 		window.hide_titlebar_when_maximized = true;
 		window.set_default_size (960, 540);
 
 		Gst.Bin bin = null;
 		try {
-			bin = Gst.parse_bin_from_description ("glupload ! glcolorconvert ! gtkglsink name=sink", true) as Gst.Bin;
-		} catch (GLib.Error e) {
+			bin = parse_bin_from_description ("glupload ! glcolorconvert ! gtkglsink name=sink", true) as Gst.Bin;
+		} catch (Error e) {
 			warning (e.message);
 		}
 
-		var sink = bin.get_by_name ("sink") as dynamic Gst.Element;
-		Gtk.Widget widget = sink.widget;
+		var sink = bin.get_by_name ("sink") as dynamic Element;
 
-		window.add (widget);
+		window.add (sink.widget);
 		window.show_all ();
 
-		playbin = Gst.ElementFactory.make ("playbin", null);
+		playbin = ElementFactory.make ("playbin", null);
 		playbin.video_sink = bin;
 
-		playbin.get_bus ().add_watch (GLib.Priority.DEFAULT, (bus, message) => {
+		playbin.get_bus ().add_watch (Priority.DEFAULT, (bus, message) => {
 			switch (message.type) {
 				case Gst.MessageType.EOS:
-					playbin.set_state (Gst.State.NULL);
-					var dialog = new Gtk.MessageDialog (window, Gtk.DialogFlags.DESTROY_WITH_PARENT, Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE, "Broadcast finished");
+					playbin.set_state (State.NULL);
+					var dialog = new MessageDialog (window, DialogFlags.DESTROY_WITH_PARENT, Gtk.MessageType.INFO, ButtonsType.CLOSE, "Broadcast finished");
 					dialog.run ();
 					dialog.destroy ();
 					break;
 				case Gst.MessageType.WARNING:
-					GLib.Error err;
+					Error err;
 					message.parse_warning (out err, null);
 					warning (err.message);
 					break;
 				case Gst.MessageType.ERROR:
-					GLib.Error err;
-					playbin.set_state (Gst.State.NULL);
+					Error err;
+					playbin.set_state (State.NULL);
 					message.parse_error (out err, null);
-					var dialog = new Gtk.MessageDialog (window, Gtk.DialogFlags.DESTROY_WITH_PARENT, Gtk.MessageType.ERROR, Gtk.ButtonsType.CLOSE, err.message);
+					var dialog = new MessageDialog (window, DialogFlags.DESTROY_WITH_PARENT, Gtk.MessageType.ERROR, ButtonsType.CLOSE, err.message);
 					dialog.run ();
 					dialog.destroy ();
 					break;
 				case Gst.MessageType.BUFFERING:
 					int percent = 0;
 					message.parse_buffering (out percent);
-					Gst.State state = Gst.State.NULL;
-					playbin.get_state (out state, null, Gst.CLOCK_TIME_NONE);
-					if (percent < 100 && state == Gst.State.PLAYING)
-						playbin.set_state (Gst.State.PAUSED);
-					else if (percent == 100 && state != Gst.State.PLAYING)
-						playbin.set_state (Gst.State.PLAYING);
+					State state = State.NULL;
+					playbin.get_state (out state, null, CLOCK_TIME_NONE);
+					if (percent < 100 && state == State.PLAYING)
+						playbin.set_state (State.PAUSED);
+					else if (percent == 100 && state != State.PLAYING)
+						playbin.set_state (State.PLAYING);
 					break;
 				default:
 					break;
@@ -84,10 +87,10 @@ class TwitTwatApp : Gtk.Application {
 		});
 
 		window.button_press_event.connect ((event) => {
-			if (event.type == Gdk.EventType.DOUBLE_BUTTON_PRESS && event.button == Gdk.BUTTON_PRIMARY) {
-				if ((window.get_window ().get_state () & Gdk.WindowState.MAXIMIZED) != 0)
+			if (event.type == Gdk.EventType.DOUBLE_BUTTON_PRESS && event.button == BUTTON_PRIMARY) {
+				if ((window.get_window ().get_state () & WindowState.MAXIMIZED) != 0)
 					window.unmaximize ();
-				else if ((window.get_window ().get_state () & Gdk.WindowState.FULLSCREEN) != 0)
+				else if ((window.get_window ().get_state () & WindowState.FULLSCREEN) != 0)
 					window.unfullscreen ();
 				else
 					window.fullscreen ();
@@ -98,34 +101,34 @@ class TwitTwatApp : Gtk.Application {
 
 		window.key_press_event.connect ((event) => {
 			switch (event.keyval) {
-				case Gdk.Key.KP_Add:
-				case Gdk.Key.plus:
+				case Key.KP_Add:
+				case Key.plus:
 					if (playbin == null)
 						break;
 					double volume = playbin.volume;
 					volume += 0.0125;
 					playbin.volume = volume.clamp (0.0, 1.0);
 					break;
-				case Gdk.Key.KP_Subtract:
-				case Gdk.Key.minus:
+				case Key.KP_Subtract:
+				case Key.minus:
 					if (playbin == null)
 						break;
 					double volume = playbin.volume;
 					volume -= 0.0125;
 					playbin.volume = volume.clamp (0.0, 1.0);
 					break;
-				case Gdk.Key.Escape:
+				case Key.Escape:
 					window.unmaximize ();
 					window.unfullscreen ();
 					break;
-				case Gdk.Key.Q:
-				case Gdk.Key.q:
+				case Key.Q:
+				case Key.q:
 					window.close ();
 					break;
-				case Gdk.Key.G:
-				case Gdk.Key.g:
-					var entry = new Gtk.Entry ();
-					var dialog = new Gtk.Dialog.with_buttons ("Enter channel", window, Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT, null);
+				case Key.G:
+				case Key.g:
+					var entry = new Entry ();
+					var dialog = new Dialog.with_buttons ("Enter channel", window, DialogFlags.MODAL | DialogFlags.DESTROY_WITH_PARENT, null);
 					dialog.get_content_area ().add (entry);
 					dialog.resizable = false;
 					entry.text = channel;
@@ -144,10 +147,10 @@ class TwitTwatApp : Gtk.Application {
 					});
 					dialog.show_all ();
 					break;
-				case Gdk.Key.S:
-				case Gdk.Key.s:
-					var entry = new Gtk.Entry ();
-					var dialog = new Gtk.Dialog.with_buttons ("Max kbps", window, Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT, null);
+				case Key.S:
+				case Key.s:
+					var entry = new Entry ();
+					var dialog = new Dialog.with_buttons ("Max kbps", window, DialogFlags.MODAL | DialogFlags.DESTROY_WITH_PARENT, null);
 					dialog.get_content_area ().add (entry);
 					dialog.resizable = false;
 					entry.text = connection_speed.to_string ();
@@ -157,9 +160,9 @@ class TwitTwatApp : Gtk.Application {
 					});
 					dialog.show_all ();
 					break;
-				case Gdk.Key.H:
-				case Gdk.Key.h:
-					var dialog = new Gtk.MessageDialog.with_markup (window, Gtk.DialogFlags.DESTROY_WITH_PARENT, Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE,
+				case Key.H:
+				case Key.h:
+					var dialog = new MessageDialog.with_markup (window, DialogFlags.DESTROY_WITH_PARENT, Gtk.MessageType.INFO, ButtonsType.CLOSE,
 						"<b>G</b>\t\tGo to channel\n<b>+/-</b>\t\tChange volume\n<b>D-Click</b>\tToggle full screen\n<b>Esc</b>\t\tExit full screen\n<b>S</b>\t\tSet bandwidth limit\n<b>H</b>\t\tControls info\n<b>Q</b>\t\tQuit"
 					);
 					dialog.title = "Controls";
@@ -173,13 +176,13 @@ class TwitTwatApp : Gtk.Application {
 		});
 
 		window.destroy.connect (() => {
-			playbin.set_state (Gst.State.NULL);
+			playbin.set_state (State.NULL);
 		});
 
 		var event = new Gdk.Event (Gdk.EventType.KEY_PRESS);
-		event.key.keyval = Gdk.Key.g;
+		event.key.keyval = Key.g;
 		event.key.window = window.get_window ();
-		event.set_device (Gdk.Display.get_default ().get_default_seat ().get_keyboard ());
+		event.set_device (Display.get_default ().get_default_seat ().get_keyboard ());
 		event.put ();
 	}
 
@@ -187,7 +190,7 @@ class TwitTwatApp : Gtk.Application {
 		var parser = new Json.Parser ();
 		try {
 			parser.load_from_data ((string) msg.response_body.data);
-		} catch (GLib.Error e) {
+		} catch (Error e) {
 			warning (e.message);
 		}
 
@@ -198,7 +201,7 @@ class TwitTwatApp : Gtk.Application {
 		reader.end_member ();
 
 		if (total == 0) {
-			var dialog = new Gtk.MessageDialog (window, Gtk.DialogFlags.DESTROY_WITH_PARENT, Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE, "Channel offline");
+			var dialog = new MessageDialog (window, DialogFlags.DESTROY_WITH_PARENT, Gtk.MessageType.INFO, ButtonsType.CLOSE, "Channel offline");
 			dialog.run ();
 			dialog.destroy ();
 			return;
@@ -213,7 +216,7 @@ class TwitTwatApp : Gtk.Application {
 		var parser = new Json.Parser ();
 		try {
 			parser.load_from_data ((string) message.response_body.data);
-		} catch (GLib.Error e) {
+		} catch (Error e) {
 			warning (e.message);
 		}
 
@@ -232,22 +235,22 @@ class TwitTwatApp : Gtk.Application {
 			"player=twitchweb&" +
 			"token=" + token + "&" +
 			"sig=" + sig + "&" +
-			"allow_audio_only=true&allow_source=true&type=any&p=" + GLib.Random.int_range (0, 999999).to_string ();
+			"allow_audio_only=true&allow_source=true&type=any&p=" + Random.int_range (0, 999999).to_string ();
 
-		playbin.set_state (Gst.State.NULL);
+		playbin.set_state (State.NULL);
 		playbin.uri = uri;
 		playbin.connection_speed = connection_speed;
-		playbin.set_state (Gst.State.PAUSED);
+		playbin.set_state (State.PAUSED);
 	}
 
 	static int main (string[] args) {
-		GLib.Environment.set_variable ("GST_VAAPI_ALL_DRIVERS", "1", true);
+		Environment.set_variable ("GST_VAAPI_ALL_DRIVERS", "1", true);
 		X.init_threads ();
 		Gst.init (ref args);
 
-		var nvdec = Gst.Registry.get ().lookup_feature ("nvdec");
+		var nvdec = Registry.get ().lookup_feature ("nvdec");
 		if (nvdec != null)
-			nvdec.set_rank (Gst.Rank.PRIMARY << 1);
+			nvdec.set_rank (Rank.PRIMARY << 1);
 
 		return new TwitTwatApp ().run (args);
 	}
