@@ -18,11 +18,11 @@
  */
 
 class TwitTwatApp : Gtk.Application {
-	private string channel = "";
-	private const string client_id = "7ikopbkspr7556owm9krqmalvr2w0i4";
-	private uint64 connection_speed = 0;
-	private dynamic Gst.Element playbin = null;
-	private Gtk.ApplicationWindow window = null;
+	string channel = "";
+	const string client_id = "7ikopbkspr7556owm9krqmalvr2w0i4";
+	uint64 connection_speed = 0;
+	dynamic Gst.Element playbin = null;
+	Gtk.ApplicationWindow window = null;
 
 	public override void activate () {
 		window = new Gtk.ApplicationWindow (this);
@@ -183,7 +183,7 @@ class TwitTwatApp : Gtk.Application {
 		event.put ();
 	}
 
-	private void get_access_token (Soup.Session session, Soup.Message msg) {
+	void get_access_token (Soup.Session session, Soup.Message msg) {
 		var parser = new Json.Parser ();
 		try {
 			parser.load_from_data ((string) msg.response_body.data);
@@ -209,7 +209,7 @@ class TwitTwatApp : Gtk.Application {
 		session.queue_message (message, play_stream);
 	}
 
-	private void play_stream (Soup.Session session, Soup.Message message) {
+	void play_stream (Soup.Session session, Soup.Message message) {
 		var parser = new Json.Parser ();
 		try {
 			parser.load_from_data ((string) message.response_body.data);
