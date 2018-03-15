@@ -171,8 +171,10 @@ class TwitTwatApp : Gtk.Application {
 			return true;
 		});
 
-		window.destroy.connect (() => {
+		window.delete_event.connect (() => {
+			window.remove(sink.widget);
 			playbin.set_state (State.NULL);
+			return false;
 		});
 
 		var event = new Gdk.Event (Gdk.EventType.KEY_PRESS);
