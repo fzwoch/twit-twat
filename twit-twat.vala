@@ -34,17 +34,14 @@ class TwitTwatApp : Gtk.Application {
 		window.hide_titlebar_when_maximized = true;
 		window.set_default_size (960, 540);
 
-		Gst.Bin bin = null;
-		try {
-			bin = parse_bin_from_description ("glupload ! glcolorconvert ! gtkglsink name=sink", true) as Gst.Bin;
-		} catch (Error e) {
-			warning (e.message);
-		}
-
-		var sink = bin.get_by_name ("sink") as dynamic Element;
+		var sink = ElementFactory.make ("gtkglsink", null) as dynamic Element;
 
 		window.add (sink.widget);
 		window.show_all ();
+
+		var bin = ElementFactory.make ("glsinkbin", null) as dynamic Element;
+
+		bin.sink = sink;
 
 		playbin = ElementFactory.make ("playbin", null);
 		playbin.video_sink = bin;
