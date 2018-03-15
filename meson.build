@@ -1,4 +1,4 @@
-project('twit-twat', ['c', 'vala'])
+project('twit-twat', 'c', 'vala')
 
 executable('twit-twat', 'twit-twat.vala',
 	dependencies : [
