@@ -48,7 +48,7 @@ class TwitTwatApp : Gtk.Application {
 		playbin.get_bus ().add_watch (Priority.DEFAULT, (bus, message) => {
 			switch (message.type) {
 				case Gst.MessageType.EOS:
-					playbin.set_state (State.NULL);
+					playbin.set_state (State.READY);
 					var dialog = new MessageDialog (window, DialogFlags.DESTROY_WITH_PARENT, Gtk.MessageType.INFO, ButtonsType.CLOSE, "Broadcast finished");
 					dialog.run ();
 					dialog.destroy ();
@@ -60,7 +60,7 @@ class TwitTwatApp : Gtk.Application {
 					break;
 				case Gst.MessageType.ERROR:
 					Error err;
-					playbin.set_state (State.NULL);
+					playbin.set_state (State.READY);
 					message.parse_error (out err, null);
 					var dialog = new MessageDialog (window, DialogFlags.DESTROY_WITH_PARENT, Gtk.MessageType.ERROR, ButtonsType.CLOSE, err.message);
 					dialog.run ();
@@ -235,7 +235,7 @@ class TwitTwatApp : Gtk.Application {
 			"sig=" + sig + "&" +
 			"allow_audio_only=true&allow_source=true&type=any&p=" + Random.int_range (0, 999999).to_string ();
 
-		playbin.set_state (State.NULL);
+		playbin.set_state (State.READY);
 		playbin.uri = uri;
 		playbin.connection_speed = connection_speed;
 		playbin.set_state (State.PAUSED);
