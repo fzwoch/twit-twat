@@ -40,7 +40,6 @@ class TwitTwatApp : Gtk.Application {
 		window.show_all ();
 
 		var bin = ElementFactory.make ("glsinkbin", null) as dynamic Element;
-
 		bin.sink = sink;
 
 		playbin = ElementFactory.make ("playbin", null);
