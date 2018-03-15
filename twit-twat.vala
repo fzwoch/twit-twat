@@ -17,9 +17,9 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
- using Gtk;
- using Gdk;
- using Gst;
+using Gtk;
+using Gdk;
+using Gst;
 
 class TwitTwatApp : Gtk.Application {
 	string channel = "";
