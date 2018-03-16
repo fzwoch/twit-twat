@@ -243,7 +243,11 @@ class TwitTwatApp : Gtk.Application {
 
 	static int main (string[] args) {
 		Environment.set_variable ("GST_VAAPI_ALL_DRIVERS", "1", true);
+
+#if HAVE_X11
 		X.init_threads ();
+#endif
+
 		Gst.init (ref args);
 
 		var nvdec = Registry.get ().lookup_feature ("nvdec");
