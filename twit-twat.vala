@@ -24,7 +24,6 @@ using Gst;
 class TwitTwatApp : Gtk.Application {
 	string channel = "";
 	const string client_id = "7ikopbkspr7556owm9krqmalvr2w0i4";
-	uint64 connection_speed = 0;
 	dynamic Element playbin = null;
 	ApplicationWindow window = null;
 
@@ -149,9 +148,10 @@ class TwitTwatApp : Gtk.Application {
 					var dialog = new Dialog.with_buttons ("Max kbps", window, DialogFlags.MODAL | DialogFlags.DESTROY_WITH_PARENT, null);
 					dialog.get_content_area ().add (entry);
 					dialog.resizable = false;
+					uint64 connection_speed = playbin.connection_speed;
 					entry.text = connection_speed.to_string ();
 					entry.activate.connect (() => {
-						connection_speed = int.parse (entry.text);
+						playbin.connection_speed = int.parse (entry.text);
 						dialog.destroy ();
 					});
 					dialog.show_all ();
@@ -237,7 +237,6 @@ class TwitTwatApp : Gtk.Application {
 
 		playbin.set_state (State.READY);
 		playbin.uri = uri;
-		playbin.connection_speed = connection_speed;
 		playbin.set_state (State.PAUSED);
 	}
 
