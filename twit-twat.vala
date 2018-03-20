@@ -241,6 +241,7 @@ class TwitTwatApp : Gtk.Application {
 	}
 
 	static int main (string[] args) {
+		X.init_threads();
 		Environment.set_variable ("GST_VAAPI_ALL_DRIVERS", "1", true);
 		Gst.init (ref args);
 
