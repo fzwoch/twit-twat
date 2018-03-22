@@ -68,11 +68,9 @@ class TwitTwatApp : Gtk.Application {
 				case Gst.MessageType.BUFFERING:
 					int percent = 0;
 					message.parse_buffering (out percent);
-					State state = State.NULL;
-					playbin.get_state (out state, null, CLOCK_TIME_NONE);
-					if (percent < 100 && state == State.PLAYING)
+					if (percent < 100)
 						playbin.set_state (State.PAUSED);
-					else if (percent == 100 && state != State.PLAYING)
+					else
 						playbin.set_state (State.PLAYING);
 					break;
 				default:
