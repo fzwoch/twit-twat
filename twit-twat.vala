@@ -29,9 +29,13 @@ class TwitTwatApp : Gtk.Application {
 
 	public override void activate () {
 		window = new ApplicationWindow (this);
-		window.title = "Twit-Twat";
 		window.hide_titlebar_when_maximized = true;
 		window.set_default_size (960, 540);
+
+		var header_bar = new Gtk.HeaderBar ();
+		header_bar.show_close_button = true;
+		header_bar.title = "Twit-Twat";
+		window.set_titlebar (header_bar);
 
 		var sink = ElementFactory.make ("gtkglsink", null) as dynamic Element;
 
@@ -228,6 +232,9 @@ class TwitTwatApp : Gtk.Application {
 		playbin.set_state (State.READY);
 		playbin.uri = uri;
 		playbin.set_state (State.PLAYING);
+
+		var header_bar = window.get_titlebar () as Gtk.HeaderBar;
+		header_bar.subtitle = channel;
 	}
 
 	static int main (string[] args) {
