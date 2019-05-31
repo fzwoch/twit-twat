@@ -199,6 +199,17 @@ class TwitTwatApp : Gtk.Application {
 			return;
 		}
 
+		reader.read_member ("data");
+		reader.read_element (0);
+		reader.read_member ("user_name");
+
+		var header_bar = window.get_titlebar () as Gtk.HeaderBar;
+		header_bar.subtitle = reader.get_string_value ();
+
+		reader.end_member ();
+		reader.end_element ();
+		reader.end_member ();
+
 		var message = new Soup.Message ("GET", "https://api.twitch.tv/api/channels/" + channel + "/access_token");
 		message.request_headers.append ("Client-ID", client_id);
 		session.queue_message (message, play_stream);
@@ -232,9 +243,6 @@ class TwitTwatApp : Gtk.Application {
 		playbin.set_state (State.READY);
 		playbin.uri = uri;
 		playbin.set_state (State.PLAYING);
-
-		var header_bar = window.get_titlebar () as Gtk.HeaderBar;
-		header_bar.subtitle = channel;
 	}
 
 	static int main (string[] args) {
