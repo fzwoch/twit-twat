@@ -23,7 +23,7 @@ using Gst;
 
 class TwitTwatApp : Gtk.Application {
 	string channel = "";
-	const string client_id = "7ikopbkspr7556owm9krqmalvr2w0i4";
+	const string client_id = "kimne78kx3ncx6brgo4mv6wki5h1ko";
 	dynamic Element playbin = null;
 	ApplicationWindow window = null;
 
