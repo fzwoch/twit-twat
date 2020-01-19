@@ -110,6 +110,12 @@ class TwitTwatApp : Gtk.Application {
 					window.unmaximize ();
 					window.unfullscreen ();
 					break;
+				case Key.F11:
+					if ((window.get_window ().get_state () & WindowState.FULLSCREEN) != 0)
+						window.unfullscreen ();
+					else
+						window.fullscreen ();
+					break;
 				case Key.Q:
 				case Key.q:
 					window.close ();
