@@ -227,8 +227,8 @@ class TwitTwatApp : Gtk.Application {
 		var uri = "http://usher.twitch.tv/api/channel/hls/" +
 			channel + ".m3u8?" +
 			"player=twitchweb&" +
-			"token=" + token + "&" +
-			"sig=" + sig + "&" +
+			"token=" + Soup.URI.encode (token, null) + "&" +
+			"sig=" + Soup.URI.encode (sig, null) + "&" +
 			"allow_audio_only=true&allow_source=true&type=any&p=" + Random.int_range (0, 999999).to_string ();
 
 		playbin.set_state (State.READY);
