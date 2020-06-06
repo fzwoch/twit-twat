@@ -201,6 +201,13 @@ class TwitTwatApp : Gtk.Application {
 
 		reader.end_member ();
 
+		if (header_bar.subtitle == null) {
+			var dialog = new MessageDialog (window, DialogFlags.DESTROY_WITH_PARENT, Gtk.MessageType.ERROR, ButtonsType.CLOSE, "No such channel");
+			dialog.run ();
+			dialog.destroy ();
+			return;
+		}
+
 		var message = new Soup.Message ("GET", "https://api.twitch.tv/api/channels/" + channel + "/access_token");
 		message.request_headers.append ("Client-ID", client_id);
 		session.queue_message (message, play_stream);
