@@ -208,6 +208,37 @@ class TwitTwatApp : Gtk.Application {
 			return;
 		}
 
+		reader.read_member ("_id");
+		var id = reader.get_int_value ();
+		reader.end_member ();
+
+		var message = new Soup.Message ("GET", "https://api.twitch.tv/kraken/streams/?channel=" + id.to_string ());
+		message.request_headers.append ("Client-ID", client_id);
+		message.request_headers.append ("Accept", "application/vnd.twitchtv.v5+json");
+		session.queue_message (message, online_check);
+	}
+
+	void online_check (Soup.Session session, Soup.Message msg) {
+		var parser = new Json.Parser ();
+		try {
+			parser.load_from_data ((string) msg.response_body.data);
+		} catch (Error e) {
+			warning (e.message);
+		}
+
+		var reader = new Json.Reader (parser.get_root ());
+
+		reader.read_member ("streams");
+		var stream_count = reader.count_elements ();
+		reader.end_member ();
+
+		if (stream_count != 1) {
+			var dialog = new MessageDialog (window, DialogFlags.DESTROY_WITH_PARENT, Gtk.MessageType.ERROR, ButtonsType.CLOSE, "Channel offline");
+			dialog.run ();
+			dialog.destroy ();
+			return;
+		}
+
 		var message = new Soup.Message ("GET", "https://api.twitch.tv/api/channels/" + channel + "/access_token");
 		message.request_headers.append ("Client-ID", client_id);
 		session.queue_message (message, play_stream);
