@@ -276,7 +276,12 @@ class TwitTwatApp : Gtk.Application {
 
 	static int main (string[] args) {
 		X.init_threads ();
-		Environment.set_variable ("GST_VAAPI_ALL_DRIVERS", "1", false);
+
+		if (Environment.get_variable ("GST_VAAPI_ALL_DRIVERS") == "0")
+			Environment.unset_variable ("GST_VAAPI_ALL_DRIVERS");
+		else
+			Environment.set_variable ("GST_VAAPI_ALL_DRIVERS", "1", false);
+
 		Gst.init (ref args);
 
 		var nvdec = Registry.get ().lookup_feature ("nvdec");
