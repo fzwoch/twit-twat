@@ -288,6 +288,10 @@ class TwitTwatApp : Gtk.Application {
 		if (nvdec != null)
 			nvdec.set_rank (Rank.PRIMARY << 1);
 
+		var vah264dec = Registry.get ().lookup_feature ("vah264dec");
+		if (vah264dec != null)
+			vah264dec.set_rank (Rank.PRIMARY << 1);
+
 		return new TwitTwatApp ().run (args);
 	}
 }
