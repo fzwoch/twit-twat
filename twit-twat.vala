@@ -69,6 +69,11 @@ class TwitTwatApp : Gtk.Application {
 					dialog.run ();
 					dialog.destroy ();
 					break;
+				case Gst.MessageType.BUFFERING:
+					int percent = 0;
+					message.parse_buffering (out percent);
+					playbin.set_state (percent == 100 ? State.PLAYING : State.PAUSED);
+					break;
 				default:
 					break;
 			}
@@ -271,7 +276,7 @@ class TwitTwatApp : Gtk.Application {
 
 		playbin.set_state (State.READY);
 		playbin.uri = uri;
-		playbin.set_state (State.PLAYING);
+		playbin.set_state (State.PAUSED);
 	}
 
 	static int main (string[] args) {
