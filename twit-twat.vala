@@ -23,6 +23,7 @@ using Gst;
 
 class TwitTwatApp : Gtk.Application {
 	string channel = "";
+	string display_name = "";
 	const string client_id = "kimne78kx3ncx6brgo4mv6wki5h1ko";
 	dynamic Element playbin = null;
 	ApplicationWindow window = null;
@@ -72,6 +73,10 @@ class TwitTwatApp : Gtk.Application {
 				case Gst.MessageType.BUFFERING:
 					int percent = 0;
 					message.parse_buffering (out percent);
+
+					header_bar.subtitle = display_name;
+					if (percent < 100)
+						header_bar.subtitle += " [" + percent.to_string () + "%]";
 					playbin.set_state (percent == 100 ? State.PLAYING : State.PAUSED);
 					break;
 				default:
@@ -200,13 +205,10 @@ class TwitTwatApp : Gtk.Application {
 		var reader = new Json.Reader (parser.get_root ());
 
 		reader.read_member ("display_name");
-
-		var header_bar = window.get_titlebar () as Gtk.HeaderBar;
-		header_bar.subtitle = reader.get_string_value ();
-
+		display_name = reader.get_string_value ();
 		reader.end_member ();
 
-		if (header_bar.subtitle == null) {
+		if (display_name == null) {
 			var dialog = new MessageDialog (window, DialogFlags.DESTROY_WITH_PARENT, Gtk.MessageType.ERROR, ButtonsType.CLOSE, "No such channel");
 			dialog.run ();
 			dialog.destroy ();
