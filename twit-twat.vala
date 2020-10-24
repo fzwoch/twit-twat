@@ -274,7 +274,7 @@ class TwitTwatApp : Gtk.Application {
 			"player=twitchweb&" +
 			"token=" + Soup.URI.encode (token, null) + "&" +
 			"sig=" + Soup.URI.encode (sig, null) + "&" +
-			"allow_audio_only=true&allow_source=true&type=any&p=" + Random.int_range (0, 999999).to_string ();
+			"allow_audio_only=false&allow_source=true&type=any&p=" + Random.int_range (0, 999999).to_string ();
 
 		playbin.set_state (State.READY);
 		playbin.uri = uri;
