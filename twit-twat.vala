@@ -1,7 +1,7 @@
 /*
  * Twit-Twat
  *
- * Copyright (C) 2017-2018 Florian Zwoch <fzwoch@gmail.com>
+ * Copyright (C) 2017-2020 Florian Zwoch <fzwoch@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -165,15 +165,6 @@ class TwitTwatApp : Gtk.Application {
 						dialog.destroy ();
 					});
 					dialog.show_all ();
-					break;
-				case Key.H:
-				case Key.h:
-					var dialog = new MessageDialog.with_markup (window, DialogFlags.DESTROY_WITH_PARENT, Gtk.MessageType.INFO, ButtonsType.CLOSE,
-						"<b>G</b>\t\tGo to channel\n<b>+/-</b>\t\tChange volume\n<b>D-Click</b>\tToggle full screen\n<b>Esc</b>\t\tExit full screen\n<b>S</b>\t\tSet bandwidth limit\n<b>H</b>\t\tControls info\n<b>Q</b>\t\tQuit"
-					);
-					dialog.title = "Controls";
-					dialog.run ();
-					dialog.destroy ();
 					break;
 				default:
 					return false;
