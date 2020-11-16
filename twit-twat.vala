@@ -145,6 +145,7 @@ class TwitTwatApp : Gtk.Application {
 							var message = new Soup.Message ("GET", "https://api.twitch.tv/api/channels/" + channel);
 
 							message.request_headers.append ("Client-ID", client_id);
+							message.request_headers.append ("Accept", "application/vnd.twitchtv.v5+json");
 							session.ssl_strict = false;
 							session.queue_message (message, get_access_token);
 						}
