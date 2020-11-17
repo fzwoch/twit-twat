@@ -24,6 +24,7 @@ using Gst;
 class TwitTwatApp : Gtk.Application {
 	string channel = "";
 	string display_name = "";
+	const string client_id_priv = "7ikopbkspr7556owm9krqmalvr2w0i4";
 	const string client_id = "kimne78kx3ncx6brgo4mv6wki5h1ko";
 	dynamic Element playbin = null;
 	ApplicationWindow window = null;
@@ -142,9 +143,11 @@ class TwitTwatApp : Gtk.Application {
 							channel = entry.text.strip ().down ();
 
 							var session = new Soup.Session ();
-							var message = new Soup.Message ("GET", "https://api.twitch.tv/api/channels/" + channel);
+							var message = new Soup.Message ("GET", "https://api.twitch.tv/kraken/users?login=" + channel);
 
-							message.request_headers.append ("Client-ID", client_id);
+							message.request_headers.append ("Client-ID", client_id_priv);
+							message.request_headers.append ("Accept", "application/vnd.twitchtv.v5+json");
+
 							session.ssl_strict = false;
 							session.queue_message (message, get_access_token);
 						}
@@ -193,26 +196,22 @@ class TwitTwatApp : Gtk.Application {
 			warning (e.message);
 		}
 
-		var reader = new Json.Reader (parser.get_root ());
+		var root_object = parser.get_root ().get_object ();
 
-		reader.read_member ("display_name");
-		display_name = reader.get_string_value ();
-		reader.end_member ();
-
-		if (display_name == null) {
+		if (root_object.get_int_member ("_total") != 1) {
 			var dialog = new MessageDialog (window, DialogFlags.DESTROY_WITH_PARENT, Gtk.MessageType.ERROR, ButtonsType.CLOSE, "No such channel");
 			dialog.run ();
 			dialog.destroy ();
 			return;
 		}
 
-		reader.read_member ("_id");
-		var id = reader.get_int_value ();
-		reader.end_member ();
+		display_name = root_object.get_array_member ("users").get_object_element (0).get_string_member ("display_name");
+		var id = root_object.get_array_member ("users").get_object_element (0).get_string_member ("_id");
 
-		var message = new Soup.Message ("GET", "https://api.twitch.tv/kraken/streams/?channel=" + id.to_string ());
-		message.request_headers.append ("Client-ID", client_id);
+		var message = new Soup.Message ("GET", "https://api.twitch.tv/kraken/streams/?channel=" + id);
+		message.request_headers.append ("Client-ID", client_id_priv);
 		message.request_headers.append ("Accept", "application/vnd.twitchtv.v5+json");
+
 		session.queue_message (message, online_check);
 	}
 
@@ -224,11 +223,9 @@ class TwitTwatApp : Gtk.Application {
 			warning (e.message);
 		}
 
-		var reader = new Json.Reader (parser.get_root ());
+		var root_object = parser.get_root ().get_object ();
 
-		reader.read_member ("streams");
-		var stream_count = reader.count_elements ();
-		reader.end_member ();
+		var stream_count = root_object.get_array_member ("streams").get_length ();
 
 		if (stream_count != 1) {
 			var dialog = new MessageDialog (window, DialogFlags.DESTROY_WITH_PARENT, Gtk.MessageType.ERROR, ButtonsType.CLOSE, "Channel offline");
@@ -239,6 +236,7 @@ class TwitTwatApp : Gtk.Application {
 
 		var message = new Soup.Message ("GET", "https://api.twitch.tv/api/channels/" + channel + "/access_token");
 		message.request_headers.append ("Client-ID", client_id);
+
 		session.queue_message (message, play_stream);
 	}
 
@@ -250,15 +248,10 @@ class TwitTwatApp : Gtk.Application {
 			warning (e.message);
 		}
 
-		var reader = new Json.Reader (parser.get_root ());
+		var root_object = parser.get_root ().get_object ();
 
-		reader.read_member ("sig");
-		var sig = reader.get_string_value ();
-		reader.end_member ();
-
-		reader.read_member ("token");
-		var token = reader.get_string_value ();
-		reader.end_member ();
+		var sig = root_object.get_string_member ("sig");
+		var token = root_object.get_string_member ("token");
 
 		var uri = "http://usher.twitch.tv/api/channel/hls/" +
 			channel + ".m3u8?" +
