@@ -240,9 +240,9 @@ class TwitTwatApp : Gtk.Application {
 
 		var json = "{
 			\"operationName\": \"PlaybackAccessToken\",
-			\"extensions\":
-				{\"persistedQuery\":
-					{\"version\": 1,
+			\"extensions\": {
+				\"persistedQuery\": {
+					\"version\": 1,
 					\"sha256Hash\": \"0828119ded1c13477966434e15800ff57ddacf13ba1911c129dc2200705b0712\"
 				}
 			},
