@@ -248,7 +248,7 @@ class TwitTwatApp : Gtk.Application {
 			},
 			\"variables\": {
 				\"isLive\": true,
-				\"login\": \"" + channel +  "\",
+				\"login\": \"" + channel + "\",
 				\"isVod\": false,
 				\"vodID\": \"\",
 				\"playerType\": \"embed\"
