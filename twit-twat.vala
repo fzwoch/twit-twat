@@ -259,10 +259,10 @@ class TwitTwatApp : Gtk.Application {
 		session.queue_message (message, play_stream);
 	}
 
-	void play_stream (Soup.Session session, Soup.Message message) {
+	void play_stream (Soup.Session session, Soup.Message msg) {
 		var parser = new Json.Parser ();
 		try {
-			parser.load_from_data ((string) message.response_body.data);
+			parser.load_from_data ((string) msg.response_body.data);
 		} catch (Error e) {
 			warning (e.message);
 		}
