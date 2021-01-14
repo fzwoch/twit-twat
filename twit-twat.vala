@@ -234,8 +234,27 @@ class TwitTwatApp : Gtk.Application {
 			return;
 		}
 
-		var message = new Soup.Message ("GET", "https://api.twitch.tv/api/channels/" + channel + "/access_token");
+		var message = new Soup.Message ("POST", "https://gql.twitch.tv/gql");
 		message.request_headers.append ("Client-ID", client_id);
+		message.request_headers.append ("Content-Type", "application/json");
+
+		var json = "{
+			\"operationName\": \"PlaybackAccessToken\",
+			\"extensions\":
+				{\"persistedQuery\":
+					{\"version\": 1,
+					\"sha256Hash\": \"0828119ded1c13477966434e15800ff57ddacf13ba1911c129dc2200705b0712\"
+				}
+			},
+			\"variables\": {
+				\"isLive\": true,
+				\"login\": \"" + channel +  "\",
+				\"isVod\": false,
+				\"vodID\": \"\",
+				\"playerType\": \"embed\"
+			}
+		}";
+		message.request_body.append_take (json.data);
 
 		session.queue_message (message, play_stream);
 	}
@@ -248,10 +267,10 @@ class TwitTwatApp : Gtk.Application {
 			warning (e.message);
 		}
 
-		var root_object = parser.get_root ().get_object ();
+		var object = parser.get_root ().get_object ().get_object_member ("data").get_object_member ("streamPlaybackAccessToken");
 
-		var sig = root_object.get_string_member ("sig");
-		var token = root_object.get_string_member ("token");
+		var sig = object.get_string_member ("signature");
+		var token = object.get_string_member ("value");
 
 		var uri = "http://usher.twitch.tv/api/channel/hls/" +
 			channel + ".m3u8?" +
