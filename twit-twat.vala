@@ -237,6 +237,8 @@ class TwitTwatApp : Gtk.Application {
 		var message = new Soup.Message ("POST", "https://gql.twitch.tv/gql");
 		message.request_headers.append ("Client-ID", client_id);
 		message.request_headers.append ("Content-Type", "application/json");
+		message.request_headers.append ("origin", "https://player.twitch.tv");
+		message.request_headers.append ("referer", "https://player.twitch.tv");
 
 		var json = "{
 			\"operationName\": \"PlaybackAccessToken\",
