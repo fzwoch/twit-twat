@@ -34,7 +34,7 @@ class TwitTwatApp : Gtk.Application {
 		window.hide_titlebar_when_maximized = true;
 		window.set_default_size (960, 540);
 
-		var header_bar = new Gtk.HeaderBar ();
+		var header_bar = new HeaderBar ();
 		header_bar.show_close_button = true;
 		header_bar.title = "Twit-Twat";
 
