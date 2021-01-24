@@ -32,8 +32,6 @@ class TwitTwatApp : Gtk.Application {
 		var builder = new Builder.from_resource ("/twit-twat/twit-twat.glade");
 
 		var window = builder.get_object ("window") as ApplicationWindow;
-		window.set_titlebar (builder.get_object ("header_bar") as HeaderBar);
-
 		add_window (window);
 
 		var sink = ElementFactory.make ("gtkglsink", null) as dynamic Element;
