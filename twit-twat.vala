@@ -1,7 +1,7 @@
 /*
  * Twit-Twat
  *
- * Copyright (C) 2017-2020 Florian Zwoch <fzwoch@gmail.com>
+ * Copyright (C) 2017-2021 Florian Zwoch <fzwoch@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,25 +27,14 @@ class TwitTwatApp : Gtk.Application {
 	const string client_id_priv = "7ikopbkspr7556owm9krqmalvr2w0i4";
 	const string client_id = "kimne78kx3ncx6brgo4mv6wki5h1ko";
 	dynamic Element playbin = null;
-	ApplicationWindow window = null;
 
 	public override void activate () {
-		window = new ApplicationWindow (this);
-		window.hide_titlebar_when_maximized = true;
-		window.set_default_size (960, 540);
+		var builder = new Builder.from_resource ("/twit-twat/twit-twat.glade");
 
-		var header_bar = new HeaderBar ();
-		header_bar.show_close_button = true;
-		header_bar.title = "Twit-Twat";
+		var window = builder.get_object ("window") as ApplicationWindow;
+		window.set_titlebar (builder.get_object ("header_bar") as HeaderBar);
 
-		var volume = new VolumeButton ();
-		header_bar.pack_end (volume);
-
-		volume.value_changed.connect ((value) => {
-			playbin.volume = value;
-		});
-
-		window.set_titlebar (header_bar);
+		add_window (window);
 
 		var sink = ElementFactory.make ("gtkglsink", null) as dynamic Element;
 
@@ -58,7 +47,30 @@ class TwitTwatApp : Gtk.Application {
 		playbin = ElementFactory.make ("playbin", null);
 		playbin.video_sink = bin;
 
+		var volume = builder.get_object ("volume") as VolumeButton;
+
+		volume.value_changed.connect ((value) => {
+			playbin.volume = value;
+		});
+
 		volume.value = playbin.volume;
+
+		var entry = builder.get_object ("channel") as Entry;
+		entry.activate.connect ((entry) => {
+			channel = entry.text.strip ().down ();
+
+			var session = new Soup.Session ();
+			var message = new Soup.Message ("GET", "https://api.twitch.tv/kraken/users?login=" + channel);
+
+			message.request_headers.append ("Client-ID", client_id_priv);
+			message.request_headers.append ("Accept", "application/vnd.twitchtv.v5+json");
+
+			session.ssl_strict = false;
+			session.queue_message (message, get_access_token);
+
+			var popover = builder.get_object ("popover_channel") as Popover;
+			popover.hide ();
+		});
 
 		playbin.get_bus ().add_watch (Priority.DEFAULT, (bus, message) => {
 			switch (message.type) {
@@ -84,7 +96,8 @@ class TwitTwatApp : Gtk.Application {
 				case Gst.MessageType.BUFFERING:
 					int percent = 0;
 					message.parse_buffering (out percent);
-
+				
+					var header_bar = window.get_titlebar () as HeaderBar;
 					header_bar.subtitle = display_name;
 					if (percent < 100)
 						header_bar.subtitle += " [" + percent.to_string () + "%]";
@@ -133,44 +146,6 @@ class TwitTwatApp : Gtk.Application {
 				case Key.q:
 					window.close ();
 					break;
-				case Key.G:
-				case Key.g:
-					var entry = new Entry ();
-					var dialog = new Dialog.with_buttons ("Enter channel", window, DialogFlags.MODAL | DialogFlags.DESTROY_WITH_PARENT, null);
-					dialog.get_content_area ().add (entry);
-					dialog.resizable = false;
-					entry.text = channel;
-					entry.activate.connect (() => {
-						if (entry.text != "") {
-							channel = entry.text.strip ().down ();
-
-							var session = new Soup.Session ();
-							var message = new Soup.Message ("GET", "https://api.twitch.tv/kraken/users?login=" + channel);
-
-							message.request_headers.append ("Client-ID", client_id_priv);
-							message.request_headers.append ("Accept", "application/vnd.twitchtv.v5+json");
-
-							session.ssl_strict = false;
-							session.queue_message (message, get_access_token);
-						}
-						dialog.destroy ();
-					});
-					dialog.show_all ();
-					break;
-				case Key.S:
-				case Key.s:
-					var entry = new Entry ();
-					var dialog = new Dialog.with_buttons ("Max kbps", window, DialogFlags.MODAL | DialogFlags.DESTROY_WITH_PARENT, null);
-					dialog.get_content_area ().add (entry);
-					dialog.resizable = false;
-					uint64 connection_speed = playbin.connection_speed;
-					entry.text = connection_speed.to_string ();
-					entry.activate.connect (() => {
-						playbin.connection_speed = int.parse (entry.text);
-						dialog.destroy ();
-					});
-					dialog.show_all ();
-					break;
 				default:
 					return false;
 			}
@@ -183,11 +158,8 @@ class TwitTwatApp : Gtk.Application {
 			return false;
 		});
 
-		var event = new Gdk.Event (Gdk.EventType.KEY_PRESS);
-		event.key.keyval = Key.g;
-		event.key.window = window.get_window ();
-		event.set_device (Display.get_default ().get_default_seat ().get_keyboard ());
-		event.put ();
+		var button = builder.get_object ("channel_button") as Button;
+		button.clicked();
 	}
 
 	void get_access_token (Soup.Session session, Soup.Message msg) {
@@ -201,7 +173,7 @@ class TwitTwatApp : Gtk.Application {
 		var root_object = parser.get_root ().get_object ();
 
 		if (root_object.get_int_member ("_total") != 1) {
-			var dialog = new MessageDialog (window, DialogFlags.DESTROY_WITH_PARENT, Gtk.MessageType.ERROR, ButtonsType.CLOSE, "No such channel");
+			var dialog = new MessageDialog (get_active_window (), DialogFlags.DESTROY_WITH_PARENT, Gtk.MessageType.ERROR, ButtonsType.CLOSE, "No such channel");
 			dialog.run ();
 			dialog.destroy ();
 			return;
@@ -226,11 +198,10 @@ class TwitTwatApp : Gtk.Application {
 		}
 
 		var root_object = parser.get_root ().get_object ();
-
 		var stream_count = root_object.get_array_member ("streams").get_length ();
 
 		if (stream_count != 1) {
-			var dialog = new MessageDialog (window, DialogFlags.DESTROY_WITH_PARENT, Gtk.MessageType.ERROR, ButtonsType.CLOSE, "Channel offline");
+			var dialog = new MessageDialog (get_active_window (), DialogFlags.DESTROY_WITH_PARENT, Gtk.MessageType.ERROR, ButtonsType.CLOSE, "Channel offline");
 			dialog.run ();
 			dialog.destroy ();
 			return;
