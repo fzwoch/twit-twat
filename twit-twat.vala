@@ -37,6 +37,14 @@ class TwitTwatApp : Gtk.Application {
 		var header_bar = new Gtk.HeaderBar ();
 		header_bar.show_close_button = true;
 		header_bar.title = "Twit-Twat";
+
+		var volume = new VolumeButton ();
+		header_bar.pack_end (volume);
+
+		volume.value_changed.connect ((value) => {
+			playbin.volume = value;
+		});
+
 		window.set_titlebar (header_bar);
 
 		var sink = ElementFactory.make ("gtkglsink", null) as dynamic Element;
@@ -49,6 +57,8 @@ class TwitTwatApp : Gtk.Application {
 
 		playbin = ElementFactory.make ("playbin", null);
 		playbin.video_sink = bin;
+
+		volume.value = playbin.volume;
 
 		playbin.get_bus ().add_watch (Priority.DEFAULT, (bus, message) => {
 			switch (message.type) {
@@ -103,19 +113,11 @@ class TwitTwatApp : Gtk.Application {
 			switch (event.keyval) {
 				case Key.KP_Add:
 				case Key.plus:
-					if (playbin == null)
-						break;
-					double volume = playbin.volume;
-					volume += 0.0125;
-					playbin.volume = volume.clamp (0.0, 1.0);
+					volume.set_value (volume.get_value () + 0.0125);
 					break;
 				case Key.KP_Subtract:
 				case Key.minus:
-					if (playbin == null)
-						break;
-					double volume = playbin.volume;
-					volume -= 0.0125;
-					playbin.volume = volume.clamp (0.0, 1.0);
+					volume.set_value (volume.get_value () - 0.0125);
 					break;
 				case Key.Escape:
 					window.unmaximize ();
