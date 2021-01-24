@@ -1,14 +1,18 @@
 project('twit-twat', 'c', 'vala')
 
-gen = generator(find_program('glib-compile-resources'),
+resources = custom_target('resources.c',
+	input : 'resources.xml',
 	output : '@BASENAME@.c',
-	arguments : ['--target=@OUTPUT@', '--generate-source',
+	command : [
+		find_program('glib-compile-resources'),
+		'--target=@OUTPUT@', '--generate-source',
 		'--sourcedir=' + meson.current_source_dir(), '@INPUT@'
-	]
+	],
+	build_always_stale : true,
 )
 
 executable('twit-twat', 'twit-twat.vala',
-	gen.process('resources.xml'),
+	resources,
 	dependencies : [
 		dependency('gtk+-3.0'),
 		dependency('gstreamer-1.0'),
