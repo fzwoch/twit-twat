@@ -7,9 +7,7 @@ Controls
 --------
 
 - **G:** channel selection
-- **S:** bandwidth limit
 - **+/-:** volume
-- **H** controls info
 - **Q:** quit
 - **ESC:** exit fullscreen
 - **Double Click:** toggle fullscreen
