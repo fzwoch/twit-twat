@@ -6,7 +6,7 @@ resources = custom_target('resources.c',
 	command : [
 		find_program('glib-compile-resources'),
 		'--target=@OUTPUT@', '--generate-source',
-		'--sourcedir=' + meson.current_source_dir(), '@INPUT@'
+		'--sourcedir=' + meson.current_source_dir(), '@INPUT@',
 	],
 	build_always_stale : true,
 )
