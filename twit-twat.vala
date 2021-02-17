@@ -76,6 +76,11 @@ class TwitTwatApp : Gtk.Application {
 			popover.hide ();
 		});
 
+		var fullscreen = builder.get_object ("fullscreen") as Button;
+		fullscreen.clicked.connect (() => {
+			window.fullscreen ();
+		});
+
 		playbin.get_bus ().add_watch (Priority.DEFAULT, (bus, message) => {
 			switch (message.type) {
 				case Gst.MessageType.EOS:
@@ -113,19 +118,6 @@ class TwitTwatApp : Gtk.Application {
 			return true;
 		});
 
-		window.button_press_event.connect ((event) => {
-			if (event.type == Gdk.EventType.DOUBLE_BUTTON_PRESS && event.button == BUTTON_PRIMARY) {
-				if ((window.get_window ().get_state () & WindowState.MAXIMIZED) != 0)
-					window.unmaximize ();
-				else if ((window.get_window ().get_state () & WindowState.FULLSCREEN) != 0)
-					window.unfullscreen ();
-				else
-					window.fullscreen ();
-				return true;
-			}
-			return false;
-		});
-
 		window.key_press_event.connect ((event) => {
 			switch (event.keyval) {
 				case Key.KP_Add:
@@ -137,7 +129,6 @@ class TwitTwatApp : Gtk.Application {
 					volume.set_value (volume.get_value () - 0.0125);
 					break;
 				case Key.Escape:
-					window.unmaximize ();
 					window.unfullscreen ();
 					break;
 				case Key.F11:
