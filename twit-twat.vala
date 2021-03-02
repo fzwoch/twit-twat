@@ -46,7 +46,6 @@ class TwitTwatApp : Gtk.Application {
 		playbin.video_sink = bin;
 
 		var volume = builder.get_object ("volume") as VolumeButton;
-		volume.value = playbin.volume;
 		volume.value_changed.connect ((value) => {
 			playbin.volume = value;
 		});
