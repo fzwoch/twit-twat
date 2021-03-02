@@ -50,6 +50,9 @@ class TwitTwatApp : Gtk.Application {
 			playbin.volume = value;
 		});
 
+		playbin.set_state (State.READY);
+		playbin.volume = volume.value;
+
 		var bitrate = builder.get_object ("bitrate") as Scale;
 		bitrate.value_changed.connect ((range) => {
 			playbin.connection_speed = (int) range.get_value ();
