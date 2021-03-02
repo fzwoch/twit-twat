@@ -51,7 +51,6 @@ class TwitTwatApp : Gtk.Application {
 		});
 
 		var bitrate = builder.get_object ("bitrate") as Scale;
-
 		bitrate.value_changed.connect ((range) => {
 			playbin.connection_speed = (int) range.get_value ();
 		});
