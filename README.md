@@ -8,6 +8,4 @@ Controls
 
 - **G:** channel selection
 - **+/-:** volume
-- **Q:** quit
 - **ESC:** exit fullscreen
-- **Double Click:** toggle fullscreen

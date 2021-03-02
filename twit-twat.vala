@@ -134,10 +134,6 @@ class TwitTwatApp : Gtk.Application {
 					else
 						window.fullscreen ();
 					break;
-				case Key.Q:
-				case Key.q:
-					window.close ();
-					break;
 				default:
 					return false;
 			}
