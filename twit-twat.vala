@@ -23,15 +23,15 @@ using Gst;
 
 class TwitTwatApp : Gtk.Application {
 	string channel = "";
-	string display_name = "";
 	const string client_id_priv = "7ikopbkspr7556owm9krqmalvr2w0i4";
 	const string client_id = "kimne78kx3ncx6brgo4mv6wki5h1ko";
 	dynamic Element playbin = null;
+	Gtk.Window window = null;
 
 	public override void activate () {
 		var builder = new Builder.from_resource ("/twit-twat/twit-twat.glade");
 
-		var window = builder.get_object ("window") as ApplicationWindow;
+		window = builder.get_object ("window") as ApplicationWindow;
 		add_window (window);
 
 		var sink = ElementFactory.make ("gtkglsink", null) as dynamic Element;
@@ -103,11 +103,10 @@ class TwitTwatApp : Gtk.Application {
 				case Gst.MessageType.BUFFERING:
 					int percent = 0;
 					message.parse_buffering (out percent);
-				
-					var header_bar = window.get_titlebar () as HeaderBar;
-					header_bar.subtitle = display_name;
-					if (percent < 100)
-						header_bar.subtitle += " [" + percent.to_string () + "%]";
+
+					var spinner = builder.get_object ("spinner") as Spinner;
+
+					spinner.active = percent < 100 ? true : false;
 					playbin.set_state (percent == 100 ? State.PLAYING : State.PAUSED);
 					break;
 				default:
@@ -172,7 +171,9 @@ class TwitTwatApp : Gtk.Application {
 			return;
 		}
 
-		display_name = root_object.get_array_member ("users").get_object_element (0).get_string_member ("display_name");
+		var header_bar = window.get_titlebar () as HeaderBar;
+
+		header_bar.subtitle = root_object.get_array_member ("users").get_object_element (0).get_string_member ("display_name");
 		var id = root_object.get_array_member ("users").get_object_element (0).get_string_member ("_id");
 
 		var message = new Soup.Message ("GET", "https://api.twitch.tv/kraken/streams/?channel=" + id);
