@@ -88,6 +88,7 @@
                 <property name="halign">start</property>
                 <property name="relief">none</property>
                 <property name="orientation">vertical</property>
+                <property name="value">1</property>
                 <property name="icons">audio-volume-muted-symbolic
 audio-volume-high-symbolic
 audio-volume-low-symbolic
