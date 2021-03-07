@@ -26,6 +26,7 @@ class TwitTwatApp : Gtk.Application {
 	const string client_id_priv = "7ikopbkspr7556owm9krqmalvr2w0i4";
 	const string client_id = "kimne78kx3ncx6brgo4mv6wki5h1ko";
 	dynamic Element playbin = null;
+	VolumeButton volume = null;
 	Gtk.Window window = null;
 
 	public override void activate () {
@@ -45,13 +46,10 @@ class TwitTwatApp : Gtk.Application {
 		playbin = ElementFactory.make ("playbin", null);
 		playbin.video_sink = bin;
 
-		var volume = builder.get_object ("volume") as VolumeButton;
+		volume = builder.get_object ("volume") as VolumeButton;
 		volume.value_changed.connect ((value) => {
 			playbin.volume = value;
 		});
-
-		playbin.set_state (State.READY);
-		playbin.volume = volume.value;
 
 		var bitrate = builder.get_object ("bitrate") as Scale;
 		bitrate.value_changed.connect ((range) => {
@@ -247,6 +245,7 @@ class TwitTwatApp : Gtk.Application {
 
 		playbin.set_state (State.READY);
 		playbin.uri = uri;
+		playbin.volume = volume.value;
 		playbin.set_state (State.PAUSED);
 	}
 
