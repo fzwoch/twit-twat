@@ -23,8 +23,6 @@ using Gst;
 
 class TwitTwatApp : Gtk.Application {
 	string channel = "";
-	const string client_id_priv = "7ikopbkspr7556owm9krqmalvr2w0i4";
-	const string client_id = "kimne78kx3ncx6brgo4mv6wki5h1ko";
 	dynamic Element playbin = null;
 	VolumeButton volume = null;
 	Gtk.Window window = null;
@@ -63,17 +61,27 @@ class TwitTwatApp : Gtk.Application {
 		entry.activate.connect ((entry) => {
 			channel = entry.text.strip ().down ();
 
-			var session = new Soup.Session ();
-			var message = new Soup.Message ("GET", "https://api.twitch.tv/kraken/users?login=" + channel);
-
-			message.request_headers.append ("Client-ID", client_id_priv);
-			message.request_headers.append ("Accept", "application/vnd.twitchtv.v5+json");
-
-			session.ssl_strict = false;
-			session.queue_message (message, get_access_token);
-
 			var popover = builder.get_object ("popover_channel") as Popover;
 			popover.hide ();
+
+			try {
+				var p = new Subprocess (SubprocessFlags.STDOUT_PIPE , "streamlink", "--stream-url", "twitch.tv/" + channel, "best");
+				p.wait_check_async.begin (null, (obj, res) => {
+					var buffer = new uint8[4096];
+					try {
+						p.get_stdout_pipe ().read (buffer);
+					} catch (IOError e) {
+						warning (e.message);
+					}
+
+					playbin.set_state (State.READY);
+					playbin.uri = (string) buffer;
+					playbin.volume = volume.value;
+					playbin.set_state (State.PAUSED);
+				});
+			} catch (Error e) {
+				warning (e.message);
+			}
 		});
 
 		var fullscreen = builder.get_object ("fullscreen") as Button;
@@ -150,106 +158,6 @@ class TwitTwatApp : Gtk.Application {
 
 		var button = builder.get_object ("channel_button") as Button;
 		button.clicked();
-	}
-
-	void get_access_token (Soup.Session session, Soup.Message msg) {
-		var parser = new Json.Parser ();
-		try {
-			parser.load_from_data ((string) msg.response_body.data);
-		} catch (Error e) {
-			warning (e.message);
-		}
-
-		var root_object = parser.get_root ().get_object ();
-
-		if (root_object.get_int_member ("_total") != 1) {
-			var dialog = new MessageDialog (get_active_window (), DialogFlags.DESTROY_WITH_PARENT, Gtk.MessageType.ERROR, ButtonsType.CLOSE, "No such channel");
-			dialog.run ();
-			dialog.destroy ();
-			return;
-		}
-
-		var header_bar = window.get_titlebar () as HeaderBar;
-
-		header_bar.subtitle = root_object.get_array_member ("users").get_object_element (0).get_string_member ("display_name");
-		var id = root_object.get_array_member ("users").get_object_element (0).get_string_member ("_id");
-
-		var message = new Soup.Message ("GET", "https://api.twitch.tv/kraken/streams/?channel=" + id);
-		message.request_headers.append ("Client-ID", client_id_priv);
-		message.request_headers.append ("Accept", "application/vnd.twitchtv.v5+json");
-
-		session.queue_message (message, online_check);
-	}
-
-	void online_check (Soup.Session session, Soup.Message msg) {
-		var parser = new Json.Parser ();
-		try {
-			parser.load_from_data ((string) msg.response_body.data);
-		} catch (Error e) {
-			warning (e.message);
-		}
-
-		var root_object = parser.get_root ().get_object ();
-		var stream_count = root_object.get_array_member ("streams").get_length ();
-
-		if (stream_count != 1) {
-			var dialog = new MessageDialog (get_active_window (), DialogFlags.DESTROY_WITH_PARENT, Gtk.MessageType.ERROR, ButtonsType.CLOSE, "Channel offline");
-			dialog.run ();
-			dialog.destroy ();
-			return;
-		}
-
-		var message = new Soup.Message ("POST", "https://gql.twitch.tv/gql");
-		message.request_headers.append ("Client-ID", client_id);
-		message.request_headers.append ("Content-Type", "application/json");
-		message.request_headers.append ("origin", "https://player.twitch.tv");
-		message.request_headers.append ("referer", "https://player.twitch.tv");
-
-		var json = "{
-			\"operationName\": \"PlaybackAccessToken\",
-			\"extensions\": {
-				\"persistedQuery\": {
-					\"version\": 1,
-					\"sha256Hash\": \"0828119ded1c13477966434e15800ff57ddacf13ba1911c129dc2200705b0712\"
-				}
-			},
-			\"variables\": {
-				\"isLive\": true,
-				\"login\": \"" + channel + "\",
-				\"isVod\": false,
-				\"vodID\": \"\",
-				\"playerType\": \"embed\"
-			}
-		}";
-		message.request_body.append_take (json.data);
-
-		session.queue_message (message, play_stream);
-	}
-
-	void play_stream (Soup.Session session, Soup.Message msg) {
-		var parser = new Json.Parser ();
-		try {
-			parser.load_from_data ((string) msg.response_body.data);
-		} catch (Error e) {
-			warning (e.message);
-		}
-
-		var object = parser.get_root ().get_object ().get_object_member ("data").get_object_member ("streamPlaybackAccessToken");
-
-		var sig = object.get_string_member ("signature");
-		var token = object.get_string_member ("value");
-
-		var uri = "http://usher.twitch.tv/api/channel/hls/" +
-			channel + ".m3u8?" +
-			"player=twitchweb&" +
-			"token=" + Soup.URI.encode (token, null) + "&" +
-			"sig=" + Soup.URI.encode (sig, null) + "&" +
-			"allow_audio_only=false&allow_source=true&type=any&p=" + Random.int_range (0, 999999).to_string ();
-
-		playbin.set_state (State.READY);
-		playbin.uri = uri;
-		playbin.volume = volume.value;
-		playbin.set_state (State.PAUSED);
 	}
 
 	static int main (string[] args) {
