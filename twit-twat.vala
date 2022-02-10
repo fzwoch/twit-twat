@@ -65,17 +65,27 @@ class TwitTwatApp : Gtk.Application {
 			popover.hide ();
 
 			try {
-				var p = new Subprocess (SubprocessFlags.STDOUT_PIPE , "streamlink", "--stream-url", "twitch.tv/" + channel, "best");
+				var p = new Subprocess (SubprocessFlags.STDOUT_PIPE , "streamlink", "--json", "--stream-url", "twitch.tv/" + channel, "best");
 				p.wait_check_async.begin (null, (obj, res) => {
-					var buffer = new uint8[4096];
+					var buffer = new uint8[8192];
 					try {
 						p.get_stdout_pipe ().read (buffer);
 					} catch (IOError e) {
 						warning (e.message);
 					}
 
+					var parser = new Json.Parser ();
+					try {
+							parser.load_from_data ((string) buffer);
+					} catch (Error e) {
+							warning (e.message);
+					}
+
+					var header_bar = window.get_titlebar () as HeaderBar;
+					header_bar.subtitle =parser.get_root ().get_object ().get_object_member ("metadata").get_string_member ("author");
+
 					playbin.set_state (State.READY);
-					playbin.uri = (string) buffer;
+					playbin.uri = parser.get_root ().get_object ().get_string_member ("url");
 					playbin.volume = volume.value;
 					playbin.set_state (State.PAUSED);
 				});
