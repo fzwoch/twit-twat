@@ -81,8 +81,15 @@ class TwitTwatApp : Gtk.Application {
 							warning (e.message);
 					}
 
+					if (parser.get_root ().get_object ().has_member ("error")) {
+						var dialog = new MessageDialog (window, DialogFlags.DESTROY_WITH_PARENT, Gtk.MessageType.ERROR, ButtonsType.CLOSE, "No channel");
+						dialog.run ();
+						dialog.destroy ();
+						return;
+					}
+
 					var header_bar = window.get_titlebar () as HeaderBar;
-					header_bar.subtitle =parser.get_root ().get_object ().get_object_member ("metadata").get_string_member ("author");
+					header_bar.subtitle = parser.get_root ().get_object ().get_object_member ("metadata").get_string_member ("author");
 
 					playbin.set_state (State.READY);
 					playbin.uri = parser.get_root ().get_object ().get_string_member ("url");
