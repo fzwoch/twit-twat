@@ -92,7 +92,7 @@ class TwitTwatApp : Gtk.Application {
 					header_bar.subtitle = parser.get_root ().get_object ().get_object_member ("metadata").get_string_member ("author");
 
 					playbin.set_state (State.READY);
-					playbin.uri = parser.get_root ().get_object ().get_string_member ("url");
+					playbin.uri = parser.get_root ().get_object ().get_string_member ("master");
 					playbin.volume = volume.value;
 					playbin.set_state (State.PAUSED);
 				});
