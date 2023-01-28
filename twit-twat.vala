@@ -178,8 +178,6 @@ class TwitTwatApp : Gtk.Application {
 	}
 
 	static int main (string[] args) {
-		X.init_threads ();
-
 		if (Environment.get_variable ("GST_VAAPI_ALL_DRIVERS") == "0")
 			Environment.unset_variable ("GST_VAAPI_ALL_DRIVERS");
 		else

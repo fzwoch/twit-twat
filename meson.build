@@ -17,7 +17,6 @@ executable('twit-twat', 'twit-twat.vala',
 		dependency('gtk+-3.0'),
 		dependency('gstreamer-1.0'),
 		dependency('json-glib-1.0'),
-		dependency('x11'),
 	],
 	install : true,
 )
