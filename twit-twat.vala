@@ -41,7 +41,7 @@ class TwitTwatApp : Gtk.Application {
 		var bin = ElementFactory.make ("glsinkbin", null) as dynamic Element;
 		bin.sink = sink;
 
-		playbin = ElementFactory.make ("playbin", null);
+		playbin = ElementFactory.make ("playbin3", null);
 		playbin.video_sink = bin;
 
 		volume = builder.get_object ("volume") as VolumeButton;
