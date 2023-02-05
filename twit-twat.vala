@@ -33,16 +33,24 @@ class TwitTwatApp : Gtk.Application {
 		window = builder.get_object ("window") as ApplicationWindow;
 		add_window (window);
 
-		var sink = ElementFactory.make ("gtkglsink", null) as dynamic Element;
+		var sink = new Gst.Bin (null);
+		var vapostproc = ElementFactory.make ("vapostproc", null);
+		var gtkwaylandsink = ElementFactory.make ("gtkwaylandsink", null) as dynamic Element;
 
-		window.add (sink.widget);
+		sink.add_many (vapostproc, gtkwaylandsink);
+		vapostproc.link (gtkwaylandsink);
+
+		var pad = vapostproc.get_static_pad ("sink");
+		var ghostpad = new GhostPad ("sink", pad);
+		ghostpad.set_active (true);
+		sink.add_pad (ghostpad);
+
+		window.add (gtkwaylandsink.widget);
 		window.show_all ();
 
-		var bin = ElementFactory.make ("glsinkbin", null) as dynamic Element;
-		bin.sink = sink;
-
 		playbin = ElementFactory.make ("playbin3", null);
-		playbin.video_sink = bin;
+		playbin.video_sink = sink;
+		playbin.instant_uri = true;
 
 		volume = builder.get_object ("volume") as VolumeButton;
 		volume.value_changed.connect ((value) => {
@@ -91,7 +99,6 @@ class TwitTwatApp : Gtk.Application {
 					var header_bar = window.get_titlebar () as HeaderBar;
 					header_bar.subtitle = parser.get_root ().get_object ().get_object_member ("metadata").get_string_member ("author");
 
-					playbin.set_state (State.READY);
 					playbin.uri = parser.get_root ().get_object ().get_string_member ("master").replace ("allow_audio_only=true", "allow_audio_only=false");
 					playbin.volume = volume.value;
 					playbin.set_state (State.PAUSED);
@@ -168,7 +175,7 @@ class TwitTwatApp : Gtk.Application {
 		});
 
 		window.delete_event.connect (() => {
-			window.remove (sink.widget);
+			window.remove (gtkwaylandsink.widget);
 			playbin.set_state (State.NULL);
 			return false;
 		});
