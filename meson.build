@@ -19,25 +19,15 @@
 
 project('twit-twat', 'vala')
 
-resources = custom_target('resources.c',
-	input : 'resources.xml',
-	output : '@BASENAME@.c',
-	command : [
-		find_program('glib-compile-resources'),
-		'--target=@OUTPUT@', '--generate-source',
-		'--sourcedir=' + meson.current_source_dir(), '@INPUT@',
-	],
-	build_always_stale : true,
-)
-
-executable('twit-twat', 'twit-twat.vala',
-	resources,
-	dependencies : [
-		dependency('gtk+-3.0'),
-		dependency('gstreamer-1.0'),
-		dependency('json-glib-1.0'),
-	],
-	install : true,
+executable('twit-twat',
+    'twit-twat.vala',
+    'ui.vala',
+    dependencies : [
+        dependency('gtk+-3.0'),
+        dependency('gstreamer-1.0'),
+        dependency('json-glib-1.0'),
+    ],
+    install : true,
 )
 
 data = configuration_data()
