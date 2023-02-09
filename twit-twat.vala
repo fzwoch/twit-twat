@@ -178,6 +178,7 @@ int main (string[] args) {
 				warning(e.message);
 			}
 		});
+		window.set_focus(channel);
 	});
 
 	return app.run(args);
