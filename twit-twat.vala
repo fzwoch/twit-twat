@@ -69,6 +69,7 @@ int main (string[] args) {
 
 		var channel = builder.get_object("channel") as Gtk.Entry;
 		channel.activate.connect(() => {
+			channel.sensitive = false;
 			try {
 				var p = new Subprocess(SubprocessFlags.STDOUT_PIPE , "streamlink", "--json", "--stream-url", "twitch.tv/" + channel.text.strip().down(), "best");
 				p.wait_check_async.begin(null, (obj, res) => {
@@ -90,6 +91,9 @@ int main (string[] args) {
 						var dialog = new Gtk.MessageDialog(window, Gtk.DialogFlags.DESTROY_WITH_PARENT, Gtk.MessageType.ERROR, Gtk.ButtonsType.CLOSE, "No channel");
 						dialog.run();
 						dialog.destroy();
+
+						channel.sensitive = true;
+						window.set_focus(channel);
 						return;
 					}
 
@@ -178,6 +182,11 @@ int main (string[] args) {
 					vol.volume = volume.adjustment.value;
 
 					pipeline.set_state(Gst.State.PLAYING);
+
+					channel.text = "";
+					channel.sensitive = true;
+
+					window.set_focus(widget);
 				});
 			} catch (Error e) {
 				warning(e.message);
