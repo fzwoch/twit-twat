@@ -186,7 +186,7 @@ int main (string[] args) {
 					channel.text = "";
 					channel.sensitive = true;
 
-					window.set_focus(widget);
+					window.set_focus(null);
 				});
 			} catch (Error e) {
 				warning(e.message);
