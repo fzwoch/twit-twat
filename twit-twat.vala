@@ -32,17 +32,6 @@ int main (string[] args) {
 		app.add_window(window);
 		window.show_all();
 
-		window.button_press_event.connect((event) => {
-			switch (event.type) {
-				case Gdk.EventType.DOUBLE_BUTTON_PRESS:
-					window.unfullscreen();
-					return true;
-				default:
-					break;
-			}
-			return false;
-		});
-
 		var controller = new Gtk.EventControllerKey(window);
 		controller.key_pressed.connect((keyval) => {
 			switch (keyval) {
@@ -162,8 +151,24 @@ int main (string[] args) {
 					});
 
 					var sink = pipeline.get_by_name("sink") as dynamic Gst.Element;
-					window.add(sink.widget);
+					Gtk.Widget widget = sink.widget;
+
+					window.add(widget);
 					window.show_all();
+
+					widget.button_press_event.connect((event) => {
+						switch (event.type) {
+							case Gdk.EventType.DOUBLE_BUTTON_PRESS:
+								if ((window.get_window().get_state() & Gdk.WindowState.FULLSCREEN) != 0)
+									window.unfullscreen();
+								else
+									window.fullscreen();
+								return true;
+							default:
+								break;
+						}
+						return false;
+					});
 
 					var decodebin = pipeline.get_by_name("decodebin") as dynamic Gst.Element;
 					decodebin.uri = parser.get_root().get_object().get_string_member("master").replace("allow_audio_only=true", "allow_audio_only=false");
