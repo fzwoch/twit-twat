@@ -181,6 +181,15 @@ int main (string[] args) {
 					var vol = pipeline.get_by_name("volume") as dynamic Gst.Element;
 					vol.volume = volume.adjustment.value;
 
+					var radio = builder.get_object("speed") as Gtk.RadioButton;
+					radio.get_group().foreach ((b) => {
+						if (b.active) {
+							float speed = 0.0f;
+							b.label.scanf("%f Mbps", &speed);
+							decodebin.connection_speed = (int)(speed * 1000);
+						}
+					});
+
 					pipeline.set_state(Gst.State.PLAYING);
 
 					channel.text = "";
