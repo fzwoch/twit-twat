@@ -140,12 +140,6 @@ int main (string[] args) {
 								message.parse_buffering(out percent);
 
 								var spinner = builder.get_object("spinner") as Gtk.Spinner;
-
-								if (spinner.active && percent == 100)
-									pipeline.set_state(Gst.State.PLAYING);
-								else if (!spinner.active && percent < 100)
-									pipeline.set_state(Gst.State.PAUSED);
-
 								spinner.active = percent < 100 ? true : false;
 								break;
 							default:
@@ -202,6 +196,17 @@ int main (string[] args) {
 			}
 		});
 		window.set_focus(channel);
+
+		window.delete_event.connect (() => {
+			if (pipeline != null) {
+				pipeline.set_state(Gst.State.NULL);
+				pipeline.get_bus().remove_watch();
+
+				var sink = pipeline.get_by_name("sink") as dynamic Gst.Element;
+				window.remove(sink.widget);
+			}
+			return false;
+		});
 	});
 
 	return app.run(args);
