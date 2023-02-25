@@ -20,10 +20,7 @@
 int main (string[] args) {
 	Gst.init(ref args);
 
-	var app = new Gtk.Application(
-		"zwoch.florian.twit-twat",
-		ApplicationFlags.FLAGS_NONE
-	);
+	var app = new Gtk.Application(null, ApplicationFlags.FLAGS_NONE);
 
 	app.activate.connect(() => {
 		var builder = new Gtk.Builder.from_string(ui, -1);
@@ -109,7 +106,7 @@ int main (string[] args) {
 					}
 
 					try {
-						pipeline = Gst.parse_launch("uridecodebin3 name=decodebin caps=video/x-h264;audio/x-raw ! h264parse ! vah264dec qos=false ! vapostproc ! gtkwaylandsink name=sink decodebin. ! audioconvert ! pulsesink name=volume") as Gst.Bin;
+						pipeline = Gst.parse_launch("uridecodebin3 name=decodebin caps=video/x-h264;audio/x-raw ! h264parse ! vah264dec ! vapostproc ! gtkwaylandsink name=sink decodebin. ! audioconvert ! volume name=volume ! pulsesink") as Gst.Bin;
 					} catch (Error e) {
 						warning(e.message);
 					}
@@ -170,7 +167,6 @@ int main (string[] args) {
 
 					var decodebin = pipeline.get_by_name("decodebin") as dynamic Gst.Element;
 					decodebin.uri = parser.get_root().get_object().get_string_member("master").replace("allow_audio_only=true", "allow_audio_only=false");
-					decodebin.use_buffering = true;
 
 					var vol = pipeline.get_by_name("volume") as dynamic Gst.Element;
 					vol.volume = volume.adjustment.value;
