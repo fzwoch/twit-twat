@@ -46,7 +46,7 @@ int main (string[] args) {
 			}
 			return false;
 		});
-		controller.ref(); //leak?
+		controller.ref();
 
 		var fullscreen = builder.get_object("fullscreen") as Gtk.Button;
 		fullscreen.button_press_event.connect(() => {
@@ -97,6 +97,8 @@ int main (string[] args) {
 					var header_bar = window.get_titlebar() as Gtk.HeaderBar;
 					header_bar.subtitle = parser.get_root().get_object().get_object_member("metadata").get_string_member("author");
 
+					var spinner = builder.get_object("spinner") as Gtk.Spinner;
+
 					if (pipeline != null) {
 						pipeline.set_state(Gst.State.NULL);
 						pipeline.get_bus().remove_watch();
@@ -113,6 +115,12 @@ int main (string[] args) {
 
 					pipeline.get_bus().add_watch(Priority.DEFAULT, (bus, message) => {
 						switch (message.type) {
+							case Gst.MessageType.STATE_CHANGED:
+								Gst.State state, oldstate;
+								message.parse_state_changed(out oldstate, out state, null);
+								if (oldstate == Gst.State.PAUSED && state == Gst.State.READY)
+									spinner.active = false;
+								break;
 							case Gst.MessageType.EOS:
 								pipeline.set_state(Gst.State.READY);
 								var dialog = new Gtk.MessageDialog(window, Gtk.DialogFlags.DESTROY_WITH_PARENT, Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE, "Broadcast finished");
@@ -136,7 +144,11 @@ int main (string[] args) {
 								int percent;
 								message.parse_buffering(out percent);
 
-								var spinner = builder.get_object("spinner") as Gtk.Spinner;
+								if (!spinner.active && percent < 100)
+									pipeline.set_state(Gst.State.PAUSED);
+								else if (spinner.active && percent == 100)
+									pipeline.set_state(Gst.State.PLAYING);
+
 								spinner.active = percent < 100 ? true : false;
 								break;
 							default:
@@ -201,6 +213,7 @@ int main (string[] args) {
 				var sink = pipeline.get_by_name("sink") as dynamic Gst.Element;
 				window.remove(sink.widget);
 			}
+			controller.unref();
 			return false;
 		});
 	});
