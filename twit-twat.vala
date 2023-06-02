@@ -68,7 +68,7 @@ int main (string[] args) {
 		channel.activate.connect(() => {
 			channel.sensitive = false;
 			try {
-				var p = new Subprocess(SubprocessFlags.STDOUT_PIPE , "streamlink", "--json", "--stream-url", (channel.text.strip().down().has_prefix("@") ? "youtube.com/" : "twitch.tv/") + channel.text.strip().down(), "best");
+				var p = new Subprocess(SubprocessFlags.STDOUT_PIPE , "streamlink", "--twitch-api-header", "Client-ID=ue6666qo983tsx6so1t0vnawi233wa", "--json", "--stream-url", (channel.text.strip().down().has_prefix("@") ? "youtube.com/" : "twitch.tv/") + channel.text.strip().down(), "best");
 				p.wait_check_async.begin(null, (obj, res) => {
 					var buffer = new uint8[8192];
 					try {
