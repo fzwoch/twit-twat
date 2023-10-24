@@ -116,6 +116,8 @@ int main (string[] args) {
 					pipeline.get_bus().add_watch(Priority.DEFAULT, (bus, message) => {
 						switch (message.type) {
 							case Gst.MessageType.STATE_CHANGED:
+								if (message.src != pipeline)
+									break;
 								Gst.State state, oldstate;
 								message.parse_state_changed(out oldstate, out state, null);
 								if (oldstate == Gst.State.PAUSED && state == Gst.State.READY)
