@@ -23,20 +23,22 @@ int main (string[] args) {
 	var app = new Gtk.Application(null, ApplicationFlags.FLAGS_NONE);
 
 	app.activate.connect(() => {
-		var builder = new Gtk.Builder.from_string(ui, -1);
+		var builder = new Gtk.Builder.from_resource ("/twit-twat/twit-twat.ui");
 
 		var window = builder.get_object("window") as Gtk.ApplicationWindow;
 		app.add_window(window);
-		window.show_all();
+		window.present();
 
-		var controller = new Gtk.EventControllerKey(window);
+		Gst.Bin pipeline = null;
+
+		var controller = new Gtk.EventControllerKey();
 		controller.key_pressed.connect((keyval) => {
 			switch (keyval) {
 				case Gdk.Key.Escape:
 					window.unfullscreen();
 					return true;
 				case Gdk.Key.F11:
-					if ((window.get_window().get_state() & Gdk.WindowState.FULLSCREEN) != 0)
+					if (window.fullscreened)
 						window.unfullscreen();
 					else
 						window.fullscreen();
@@ -46,15 +48,12 @@ int main (string[] args) {
 			}
 			return false;
 		});
-		controller.ref();
+		(window as Gtk.Widget)?.add_controller(controller);
 
 		var fullscreen = builder.get_object("fullscreen") as Gtk.Button;
-		fullscreen.button_press_event.connect(() => {
+		fullscreen.clicked.connect(() => {
 			window.fullscreen();
-			return true;
 		});
-
-		Gst.Bin pipeline = null;
 
 		var volume = builder.get_object("volume") as Gtk.VolumeButton;
 		volume.value_changed.connect(() => {
@@ -65,6 +64,7 @@ int main (string[] args) {
 		});
 
 		var channel = builder.get_object("channel") as Gtk.Entry;
+
 		channel.activate.connect(() => {
 			channel.sensitive = false;
 			try {
@@ -85,30 +85,26 @@ int main (string[] args) {
 					}
 
 					if (parser.get_root().get_object().has_member("error")) {
-						var dialog = new Gtk.MessageDialog(window, Gtk.DialogFlags.DESTROY_WITH_PARENT, Gtk.MessageType.ERROR, Gtk.ButtonsType.CLOSE, "No channel");
-						dialog.run();
-						dialog.destroy();
-
+						var dialog = new Gtk.AlertDialog("No channel");
+						dialog.show(window);
 						channel.sensitive = true;
-						window.set_focus(channel);
+						channel.grab_focus();
 						return;
 					}
 
-					var header_bar = window.get_titlebar() as Gtk.HeaderBar;
-					header_bar.subtitle = parser.get_root().get_object().get_object_member("metadata").get_string_member("author");
+					var subtitle = builder.get_object("subtitle") as Gtk.Label;
+					subtitle.label = parser.get_root().get_object().get_object_member("metadata").get_string_member("author");
 
 					var spinner = builder.get_object("spinner") as Gtk.Spinner;
 
 					if (pipeline != null) {
 						pipeline.set_state(Gst.State.NULL);
 						pipeline.get_bus().remove_watch();
-
-						var sink = pipeline.get_by_name("sink") as dynamic Gst.Element;
-						window.remove(sink.widget);
+						window.child = null;
 					}
 
 					try {
-						pipeline = Gst.parse_launch("uridecodebin3 name=decodebin caps=video/x-h264;audio/x-raw ! h264parse ! vah264dec qos=false ! vapostproc ! gtkwaylandsink name=sink decodebin. ! audioconvert ! volume name=volume ! pulsesink") as Gst.Bin;
+						pipeline = Gst.parse_launch("uridecodebin3 name=decodebin caps=video/x-h264;audio/x-raw ! h264parse ! vah264dec qos=false ! vapostproc ! gtk4paintablesink name=sink decodebin. ! audioconvert ! volume name=volume ! pulsesink") as Gst.Bin;
 					} catch (Error e) {
 						warning(e.message);
 					}
@@ -121,13 +117,12 @@ int main (string[] args) {
 								Gst.State state, oldstate;
 								message.parse_state_changed(out oldstate, out state, null);
 								if (oldstate == Gst.State.PAUSED && state == Gst.State.READY)
-									spinner.active = false;
+									spinner.spinning = false;
 								break;
 							case Gst.MessageType.EOS:
 								pipeline.set_state(Gst.State.READY);
-								var dialog = new Gtk.MessageDialog(window, Gtk.DialogFlags.DESTROY_WITH_PARENT, Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE, "Broadcast finished");
-								dialog.run();
-								dialog.destroy();
+								var dialog = new Gtk.AlertDialog("Broadcast finished");
+								dialog.show(window);
 								break;
 							case Gst.MessageType.WARNING:
 								Error err;
@@ -138,20 +133,19 @@ int main (string[] args) {
 								Error err;
 								pipeline.set_state(Gst.State.READY);
 								message.parse_error(out err, null);
-								var dialog = new Gtk.MessageDialog(window, Gtk.DialogFlags.DESTROY_WITH_PARENT, Gtk.MessageType.ERROR, Gtk.ButtonsType.CLOSE, err.message);
-								dialog.run();
-								dialog.destroy();
+								var dialog = new Gtk.AlertDialog(err.message);
+								dialog.show(window);
 								break;
 							case Gst.MessageType.BUFFERING:
 								int percent;
 								message.parse_buffering(out percent);
 
-								if (!spinner.active && percent < 100)
+								if (!spinner.spinning && percent < 100)
 									pipeline.set_state(Gst.State.PAUSED);
-								else if (spinner.active && percent == 100)
+								else if (spinner.spinning && percent == 100)
 									pipeline.set_state(Gst.State.PLAYING);
 
-								spinner.active = percent < 100 ? true : false;
+								spinner.spinning = percent < 100 ? true : false;
 								break;
 							default:
 								break;
@@ -160,24 +154,21 @@ int main (string[] args) {
 					});
 
 					var sink = pipeline.get_by_name("sink") as dynamic Gst.Element;
-					Gtk.Widget widget = sink.widget;
+					Gdk.Paintable paintable = sink.paintable;
 
-					window.add(widget);
-					window.show_all();
+					var picture = builder.get_object("picture") as Gtk.Picture;
+					picture.paintable = paintable;
 
-					widget.button_press_event.connect((event) => {
-						switch (event.type) {
-							case Gdk.EventType.DOUBLE_BUTTON_PRESS:
-								if ((window.get_window().get_state() & Gdk.WindowState.FULLSCREEN) != 0)
-									window.unfullscreen();
-								else
-									window.fullscreen();
-								return true;
-							default:
-								break;
+					var gesture = new Gtk.GestureClick ();
+					gesture.pressed.connect((n) => {
+						if (n == 2) {
+							if (window.fullscreened)
+								window.unfullscreen();
+							else
+								window.fullscreen();
 						}
-						return false;
 					});
+					picture.add_controller(gesture);
 
 					var decodebin = pipeline.get_by_name("decodebin") as dynamic Gst.Element;
 					decodebin.uri = parser.get_root().get_object().get_string_member("master").replace("allow_audio_only=true", "allow_audio_only=false");
@@ -185,13 +176,12 @@ int main (string[] args) {
 					var vol = pipeline.get_by_name("volume") as dynamic Gst.Element;
 					vol.volume = volume.adjustment.value;
 
-					var radio = builder.get_object("speed") as Gtk.RadioButton;
-					radio.get_group().foreach ((b) => {
-						if (b.active) {
-							float speed = 0.0f;
-							b.label.scanf("%f Mbps", &speed);
-							decodebin.connection_speed = (int)(speed * 1000);
-						}
+					var box = builder.get_object("speed") as Gtk.ListBox;
+					box.selected_foreach ((b, r) => {
+						var l = r.child as Gtk.Label;
+						float speed = 0.0f;
+						l.label.scanf("%f Mbps", &speed);
+						decodebin.connection_speed = (int)(speed * 1000);
 					});
 
 					pipeline.set_state(Gst.State.PLAYING);
@@ -205,17 +195,14 @@ int main (string[] args) {
 				warning(e.message);
 			}
 		});
-		window.set_focus(channel);
+		channel.grab_focus();
 
-		window.delete_event.connect (() => {
+		window.close_request.connect (() => {
 			if (pipeline != null) {
 				pipeline.set_state(Gst.State.NULL);
 				pipeline.get_bus().remove_watch();
-
-				var sink = pipeline.get_by_name("sink") as dynamic Gst.Element;
-				window.remove(sink.widget);
+				window.child = null;
 			}
-			controller.unref();
 			return false;
 		});
 	});

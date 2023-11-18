@@ -19,11 +19,26 @@
 
 project('twit-twat', 'vala')
 
+gnome = import('gnome')
+
+blueprints = custom_target('blueprints',
+    input: files(
+        'twit-twat.blp',
+    ),
+    output: '.',
+    command: [find_program('blueprint-compiler'), 'batch-compile', '@OUTPUT@', '@CURRENT_SOURCE_DIR@', '@INPUT@'],
+)
+
+resources = gnome.compile_resources('twit-twat',
+    'twit-twat.xml',
+    dependencies : blueprints,
+)
+
 executable('twit-twat',
     'twit-twat.vala',
-    'ui.vala',
+    resources,
     dependencies : [
-        dependency('gtk+-3.0'),
+        dependency('gtk4'),
         dependency('gstreamer-1.0'),
         dependency('json-glib-1.0'),
     ],
