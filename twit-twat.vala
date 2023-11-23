@@ -100,11 +100,10 @@ int main (string[] args) {
 					if (pipeline != null) {
 						pipeline.set_state(Gst.State.NULL);
 						pipeline.get_bus().remove_watch();
-						window.child = null;
 					}
 
 					try {
-						pipeline = Gst.parse_launch("uridecodebin3 name=decodebin caps=video/x-h264;audio/x-raw ! h264parse ! vah264dec qos=false ! vapostproc ! gtk4paintablesink name=sink decodebin. ! audioconvert ! volume name=volume ! pulsesink") as Gst.Bin;
+						pipeline = Gst.parse_launch("uridecodebin3 name=decodebin caps=video/x-h264;audio/x-raw ! h264parse ! vah264dec qos=false ! glsinkbin sink=\"gtk4paintablesink name=sink\" decodebin. ! audioconvert ! volume name=volume ! pulsesink") as Gst.Bin;
 					} catch (Error e) {
 						warning(e.message);
 					}
@@ -201,7 +200,6 @@ int main (string[] args) {
 			if (pipeline != null) {
 				pipeline.set_state(Gst.State.NULL);
 				pipeline.get_bus().remove_watch();
-				window.child = null;
 			}
 			return false;
 		});
