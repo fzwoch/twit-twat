@@ -29,6 +29,9 @@ int main (string[] args) {
 		app.add_window(window);
 		window.present();
 
+		var box = builder.get_object("speed") as Gtk.ListBox;
+		box.select_row(box.get_row_at_index(7));
+
 		Gst.Bin pipeline = null;
 
 		var controller = new Gtk.EventControllerKey();
@@ -175,13 +178,10 @@ int main (string[] args) {
 					var vol = pipeline.get_by_name("volume") as dynamic Gst.Element;
 					vol.volume = volume.adjustment.value;
 
-					var box = builder.get_object("speed") as Gtk.ListBox;
-					box.selected_foreach ((b, r) => {
-						var l = r.child as Gtk.Label;
-						float speed = 0.0f;
-						l.label.scanf("%f Mbps", &speed);
-						decodebin.connection_speed = (int)(speed * 1000);
-					});
+					var r = box.get_selected_row() as Gtk.ListBoxRow;
+					float speed = 0.0f;
+					(r.get_child() as Gtk.Label)?.label.scanf("%f Mbps", &speed);
+					decodebin.connection_speed = (int)(speed * 1000);
 
 					pipeline.set_state(Gst.State.PLAYING);
 
