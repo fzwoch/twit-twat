@@ -30,7 +30,7 @@ int main (string[] args) {
 		window.present();
 
 		var box = builder.get_object("speed") as Gtk.ListBox;
-		box.select_row(box.get_row_at_index(7));
+		box.select_row(box.get_row_at_index(0));
 
 		Gst.Bin pipeline = null;
 
