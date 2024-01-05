@@ -125,8 +125,11 @@ Gtk.ApplicationWindow window {
         }
 
         [end]
-        Gtk.VolumeButton volume {
-            value: 1.0;
+        Gtk.ScaleButton volume {
+            adjustment: Gtk.Adjustment {
+                upper: 1.0;
+                value: 1.0;
+            };
         }
 
         [end]

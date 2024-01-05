@@ -58,13 +58,14 @@ int main (string[] args) {
 			window.fullscreen();
 		});
 
-		var volume = builder.get_object("volume") as Gtk.VolumeButton;
+		var volume = builder.get_object("volume") as Gtk.ScaleButton;
 		volume.value_changed.connect(() => {
 			if (pipeline != null) {
 				var vol = pipeline.get_by_name("volume") as dynamic Gst.Element;
 				vol.volume = volume.adjustment.value;
 			}
 		});
+		volume.icons = {"audio-volume-muted-symbolic", "audio-volume-high-symbolic", "audio-volume-low-symbolic", "audio-volume-medium-symbolic"};
 
 		var channel = builder.get_object("channel") as Gtk.Entry;
 
@@ -106,7 +107,7 @@ int main (string[] args) {
 					}
 
 					try {
-						pipeline = Gst.parse_launch("uridecodebin3 name=decodebin caps=video/x-h264;audio/x-raw ! h264parse ! vah264dec qos=false ! glsinkbin sink=\"gtk4paintablesink name=sink\" decodebin. ! audioconvert ! volume name=volume ! pulsesink") as Gst.Bin;
+						pipeline = Gst.parse_launch("uridecodebin3 name=decodebin caps=video/x-h264;audio/x-raw ! h264parse ! vah264dec ! glsinkbin sink=\"gtk4paintablesink name=sink\" decodebin. ! audioconvert ! volume name=volume ! pulsesink") as Gst.Bin;
 					} catch (Error e) {
 						warning(e.message);
 					}
@@ -138,14 +139,17 @@ int main (string[] args) {
 								var dialog = new Gtk.AlertDialog(err.message);
 								dialog.show(window);
 								break;
+							case Gst.MessageType.LATENCY:
+								pipeline.recalculate_latency();
+								break;
 							case Gst.MessageType.BUFFERING:
 								int percent;
 								message.parse_buffering(out percent);
 
-								if (!spinner.spinning && percent < 100)
-									pipeline.set_state(Gst.State.PAUSED);
-								else if (spinner.spinning && percent == 100)
-									pipeline.set_state(Gst.State.PLAYING);
+						//		if (!spinner.spinning && percent < 100)
+						//			pipeline.set_state(Gst.State.PAUSED);
+						//		else if (spinner.spinning && percent == 100)
+						//			pipeline.set_state(Gst.State.PLAYING);
 
 								spinner.spinning = percent < 100 ? true : false;
 								break;
@@ -183,6 +187,7 @@ int main (string[] args) {
 					(r.get_child() as Gtk.Label)?.label.scanf("%f Mbps", &speed);
 					decodebin.connection_speed = (int)(speed * 1000);
 
+					spinner.spinning = true;
 					pipeline.set_state(Gst.State.PLAYING);
 
 					channel.text = "";
