@@ -151,7 +151,7 @@ int main (string[] args) {
 					});
 
 					var pipe = pipeline as Gst.Pipeline;
-					pipe.delay = 2000000000;
+					pipe.delay = 2 * Gst.SECOND;
 
 					var sink = pipeline.get_by_name("sink") as dynamic Gst.Element;
 					Gdk.Paintable paintable = sink.paintable;
