@@ -107,7 +107,7 @@ int main (string[] args) {
 					}
 
 					try {
-						pipeline = Gst.parse_launch("uridecodebin3 name=decodebin caps=video/x-h264;audio/x-raw ! h264parse ! vah264dec ! glsinkbin sink=\"gtk4paintablesink name=sink\" decodebin. ! audioconvert ! volume name=volume ! pulsesink") as Gst.Bin;
+						pipeline = Gst.parse_launch("uridecodebin3 name=decodebin caps=video/x-h264;audio/x-raw ! h264parse ! vah264dec ! glsinkbin sink=\"gtk4paintablesink show-preroll-frame=false name=sink\" decodebin. ! audioconvert ! volume name=volume ! pulsesink") as Gst.Bin;
 					} catch (Error e) {
 						warning(e.message);
 					}
@@ -139,18 +139,9 @@ int main (string[] args) {
 								var dialog = new Gtk.AlertDialog(err.message);
 								dialog.show(window);
 								break;
-							case Gst.MessageType.LATENCY:
-								pipeline.recalculate_latency();
-								break;
 							case Gst.MessageType.BUFFERING:
 								int percent;
 								message.parse_buffering(out percent);
-
-						//		if (!spinner.spinning && percent < 100)
-						//			pipeline.set_state(Gst.State.PAUSED);
-						//		else if (spinner.spinning && percent == 100)
-						//			pipeline.set_state(Gst.State.PLAYING);
-
 								spinner.spinning = percent < 100 ? true : false;
 								break;
 							default:
@@ -158,6 +149,9 @@ int main (string[] args) {
 						}
 						return true;
 					});
+
+					var pipe = pipeline as Gst.Pipeline;
+					pipe.delay = 2000000000;
 
 					var sink = pipeline.get_by_name("sink") as dynamic Gst.Element;
 					Gdk.Paintable paintable = sink.paintable;
