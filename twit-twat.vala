@@ -1,7 +1,7 @@
 //
 // Twit-Twat
 //
-// Copyright (C) 2017-2023 Florian Zwoch <fzwoch@gmail.com>
+// Copyright (C) 2017-2024 Florian Zwoch <fzwoch@gmail.com>
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -17,25 +17,205 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 //
 
-int main (string[] args) {
+void main(string[] args) {
 	Gst.init(ref args);
 
-	var app = new Gtk.Application(null, ApplicationFlags.FLAGS_NONE);
+	string[] decoders = {
+		"vah264dec",
+		"vah265dec",
+		"vaav1dec"
+	};
+
+	foreach (string decoder in decoders) {
+		var dec = Gst.Registry.get().lookup_feature(decoder);
+		if (dec != null) {
+			dec.set_rank(Gst.Rank.PRIMARY << 1);
+		}
+	}
+
+	var app = new Adw.Application(null, ApplicationFlags.FLAGS_NONE);
 
 	app.activate.connect(() => {
-		var builder = new Gtk.Builder.from_resource ("/twit-twat/twit-twat.ui");
+		var builder = new Gtk.Builder.from_resource("/twit-twat/twit-twat.ui");
 
-		var window = builder.get_object("window") as Gtk.ApplicationWindow;
+		var window = builder.get_object("window") as Adw.ApplicationWindow;
+		var picture = builder.get_object("picture") as Gtk.Picture;
+		var channel = builder.get_object("channel") as Gtk.Entry;
+		var revealer = builder.get_object("revealer") as Gtk.Revealer;
+		var spinner = builder.get_object("spinner") as Gtk.Spinner;
+		var volume = builder.get_object("volume") as Gtk.ScaleButton;
+		var toast = builder.get_object("toast") as Adw.ToastOverlay;
+
 		app.add_window(window);
 		window.present();
 
-		var box = builder.get_object("speed") as Gtk.ListBox;
-		box.select_row(box.get_row_at_index(0));
+		var pipeline = new Gst.Pipeline(null);
 
-		Gst.Bin pipeline = null;
+		var playbin = Gst.ElementFactory.make("playbin3", null) as dynamic Gst.Element;
+		var glsink = Gst.ElementFactory.make("glsinkbin", null) as dynamic Gst.Element;
+		var gtksink = Gst.ElementFactory.make("gtk4paintablesink", null) as dynamic Gst.Element;
+
+		pipeline.add(playbin);
+
+		playbin.instant_uri = true;
+		playbin.video_sink = glsink;
+		glsink.sink = gtksink;
+
+		picture.paintable = gtksink.paintable;
+
+		playbin.volume = volume.adjustment.value / 100.0;
+		volume.value_changed.connect(() => {
+			playbin.volume = volume.adjustment.value / 100.0;
+		});
+		volume.icons = {
+			"audio-volume-muted-symbolic",
+			"audio-volume-high-symbolic",
+			"audio-volume-low-symbolic",
+			"audio-volume-medium-symbolic"
+		};
+
+		pipeline.get_bus().add_watch(Priority.DEFAULT, (bus, message) => {
+			switch (message.type) {
+				case Gst.MessageType.WARNING:
+					Error err;
+					message.parse_warning(out err, null);
+					var t = new Adw.Toast(err.message);
+					t.timeout = 3;
+					toast.add_toast(t);
+					break;
+				case Gst.MessageType.ERROR:
+					Error err;
+					message.parse_error(out err, null);
+					var t = new Adw.Toast(err.message);
+					t.priority = Adw.ToastPriority.HIGH;
+					t.timeout = 0;
+					toast.add_toast(t);
+					pipeline.set_state(Gst.State.NULL);
+					break;
+				case Gst.MessageType.EOS:
+					var t = new Adw.Toast("Stream ended.");
+					t.priority = Adw.ToastPriority.HIGH;
+					t.timeout = 0;
+					toast.add_toast(t);
+					break;
+				case Gst.MessageType.BUFFERING:
+					int percent;
+					message.parse_buffering(out percent);
+
+					if (spinner.spinning && percent == 100)
+						pipeline.set_state(Gst.State.PLAYING);
+					else if (!spinner.spinning && percent != 100)
+						pipeline.set_state(Gst.State.PAUSED);
+
+					spinner.spinning = percent < 100 ? true : false;
+					break;
+				default:
+					break;
+			}
+			return true;
+		});
+
+		channel.activate.connect(() => {
+			window.set_focus(null);
+			channel.sensitive = false;
+			try {
+				var p = new Subprocess(SubprocessFlags.STDOUT_PIPE , "streamlink", "--json", "--stream-url", (channel.text.strip().down().has_prefix("@") ? "youtube.com/" : "twitch.tv/") + channel.text.strip().down(), "best");
+				p.wait_check_async.begin(null, (obj, res) => {
+					var buffer = new uint8[8192];
+					try {
+						p.get_stdout_pipe().read(buffer);
+					} catch (IOError e) {
+						var t = new Adw.Toast(e.message);
+						t.priority = Adw.ToastPriority.HIGH;
+						t.timeout = 0;
+						toast.add_toast(t);
+						return;
+					}
+
+					var parser = new Json.Parser();
+					try {
+						parser.load_from_data((string) buffer);
+					} catch (Error e) {
+						var t = new Adw.Toast(e.message);
+						t.priority = Adw.ToastPriority.HIGH;
+						t.timeout = 0;
+						toast.add_toast(t);
+						return;
+					}
+
+					if (parser.get_root().get_object().has_member("error")) {
+						var t = new Adw.Toast(parser.get_root().get_object().get_string_member("error"));
+						t.priority = Adw.ToastPriority.HIGH;
+						toast.add_toast(t);
+						channel.sensitive = true;
+						channel.grab_focus();
+						return;
+					}
+
+					var title = builder.get_object("title") as Adw.WindowTitle;
+					title.subtitle = parser.get_root().get_object().get_object_member("metadata").get_string_member("author");
+
+					playbin.uri = parser.get_root().get_object().get_string_member("master").replace("allow_audio_only=true", "allow_audio_only=false");
+					pipeline.set_state(Gst.State.PLAYING);
+
+					channel.text = "";
+					channel.sensitive = true;
+				});
+			} catch (Error e) {
+				var t = new Adw.Toast(e.message);
+				t.priority = Adw.ToastPriority.HIGH;
+				t.timeout = 0;
+				toast.add_toast(t);
+			}
+		});
+
+		uint id = 0;
+		double last_x = 0;
+		double last_y = 0;
+
+		void timer() {
+			if (id != 0) {
+				GLib.Source.remove(id);
+			}
+			id = GLib.Timeout.add_seconds(3, () => {
+				if (volume.active) {
+					return true;
+				}
+				revealer.reveal_child = false;
+				id = 0;
+				return false;
+			});
+			revealer.reveal_child = true;
+		}
+
+		var mouse = new Gtk.EventControllerMotion();
+		mouse.motion.connect((x, y) => {
+			if (x == last_x && y == last_y) {
+				return;
+			}
+			last_x = x;
+			last_y = y;
+
+			timer();
+		});
+		(window as Gtk.Widget)?.add_controller(mouse);
+
+		var gesture = new Gtk.GestureClick ();
+		gesture.pressed.connect((n) => {
+			if (n == 2) {
+				if (window.fullscreened)
+					window.unfullscreen();
+				else
+					window.fullscreen();
+			}
+		});
+		(window as Gtk.Widget)?.add_controller(gesture);
 
 		var controller = new Gtk.EventControllerKey();
+		controller.propagation_phase = Gtk.PropagationPhase.CAPTURE;
 		controller.key_pressed.connect((keyval) => {
+			timer();
+
 			switch (keyval) {
 				case Gdk.Key.Escape:
 					window.unfullscreen();
@@ -52,157 +232,7 @@ int main (string[] args) {
 			return false;
 		});
 		(window as Gtk.Widget)?.add_controller(controller);
-
-		var fullscreen = builder.get_object("fullscreen") as Gtk.Button;
-		fullscreen.clicked.connect(() => {
-			window.fullscreen();
-		});
-
-		var volume = builder.get_object("volume") as Gtk.ScaleButton;
-		volume.value_changed.connect(() => {
-			if (pipeline != null) {
-				var vol = pipeline.get_by_name("volume") as dynamic Gst.Element;
-				vol.volume = volume.adjustment.value;
-			}
-		});
-		volume.icons = {"audio-volume-muted-symbolic", "audio-volume-high-symbolic", "audio-volume-low-symbolic", "audio-volume-medium-symbolic"};
-
-		var channel = builder.get_object("channel") as Gtk.Entry;
-
-		channel.activate.connect(() => {
-			channel.sensitive = false;
-			try {
-				var p = new Subprocess(SubprocessFlags.STDOUT_PIPE , "streamlink", "--json", "--stream-url", (channel.text.strip().down().has_prefix("@") ? "youtube.com/" : "twitch.tv/") + channel.text.strip().down(), "best");
-				p.wait_check_async.begin(null, (obj, res) => {
-					var buffer = new uint8[8192];
-					try {
-						p.get_stdout_pipe().read(buffer);
-					} catch (IOError e) {
-						warning(e.message);
-					}
-
-					var parser = new Json.Parser();
-					try {
-						parser.load_from_data((string) buffer);
-					} catch (Error e) {
-						warning(e.message);
-					}
-
-					if (parser.get_root().get_object().has_member("error")) {
-						var dialog = new Gtk.AlertDialog("No channel");
-						dialog.show(window);
-						channel.sensitive = true;
-						channel.grab_focus();
-						return;
-					}
-
-					var subtitle = builder.get_object("subtitle") as Gtk.Label;
-					subtitle.label = parser.get_root().get_object().get_object_member("metadata").get_string_member("author");
-
-					var spinner = builder.get_object("spinner") as Gtk.Spinner;
-
-					if (pipeline != null) {
-						pipeline.set_state(Gst.State.NULL);
-						pipeline.get_bus().remove_watch();
-					}
-
-					try {
-						pipeline = Gst.parse_launch("uridecodebin3 name=decodebin caps=video/x-h264;audio/x-raw ! h264parse ! vah264dec ! glsinkbin sink=\"gtk4paintablesink show-preroll-frame=false name=sink\" decodebin. ! audioconvert ! volume name=volume ! pulsesink") as Gst.Bin;
-					} catch (Error e) {
-						warning(e.message);
-					}
-
-					pipeline.get_bus().add_watch(Priority.DEFAULT, (bus, message) => {
-						switch (message.type) {
-							case Gst.MessageType.STATE_CHANGED:
-								if (message.src != pipeline)
-									break;
-								Gst.State state, oldstate;
-								message.parse_state_changed(out oldstate, out state, null);
-								if (oldstate == Gst.State.PAUSED && state == Gst.State.READY)
-									spinner.spinning = false;
-								break;
-							case Gst.MessageType.EOS:
-								pipeline.set_state(Gst.State.READY);
-								var dialog = new Gtk.AlertDialog("Broadcast finished");
-								dialog.show(window);
-								break;
-							case Gst.MessageType.WARNING:
-								Error err;
-								message.parse_warning(out err, null);
-								warning(err.message);
-								break;
-							case Gst.MessageType.ERROR:
-								Error err;
-								pipeline.set_state(Gst.State.READY);
-								message.parse_error(out err, null);
-								var dialog = new Gtk.AlertDialog(err.message);
-								dialog.show(window);
-								break;
-							case Gst.MessageType.BUFFERING:
-								int percent;
-								message.parse_buffering(out percent);
-								spinner.spinning = percent < 100 ? true : false;
-								break;
-							default:
-								break;
-						}
-						return true;
-					});
-
-					var pipe = pipeline as Gst.Pipeline;
-					pipe.delay = 2 * Gst.SECOND;
-
-					var sink = pipeline.get_by_name("sink") as dynamic Gst.Element;
-					Gdk.Paintable paintable = sink.paintable;
-
-					var picture = builder.get_object("picture") as Gtk.Picture;
-					picture.paintable = paintable;
-
-					var gesture = new Gtk.GestureClick ();
-					gesture.pressed.connect((n) => {
-						if (n == 2) {
-							if (window.fullscreened)
-								window.unfullscreen();
-							else
-								window.fullscreen();
-						}
-					});
-					picture.add_controller(gesture);
-
-					var decodebin = pipeline.get_by_name("decodebin") as dynamic Gst.Element;
-					decodebin.uri = parser.get_root().get_object().get_string_member("master").replace("allow_audio_only=true", "allow_audio_only=false");
-
-					var vol = pipeline.get_by_name("volume") as dynamic Gst.Element;
-					vol.volume = volume.adjustment.value;
-
-					var r = box.get_selected_row() as Gtk.ListBoxRow;
-					float speed = 0.0f;
-					(r.get_child() as Gtk.Label)?.label.scanf("%f Mbps", &speed);
-					decodebin.connection_speed = (int)(speed * 1000);
-
-					spinner.spinning = true;
-					pipeline.set_state(Gst.State.PLAYING);
-
-					channel.text = "";
-					channel.sensitive = true;
-
-					window.set_focus(null);
-				});
-			} catch (Error e) {
-				warning(e.message);
-			}
-		});
-		channel.grab_focus();
-
-		window.close_request.connect (() => {
-			if (pipeline != null) {
-				pipeline.set_state(Gst.State.NULL);
-				pipeline.get_bus().remove_watch();
-			}
-			return false;
-		});
 	});
 
-	return app.run(args);
+	app.run();
 }

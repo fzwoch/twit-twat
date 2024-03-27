@@ -1,141 +1,72 @@
+//
+// Twit-Twat
+//
+// Copyright (C) 2017-2024 Florian Zwoch <fzwoch@gmail.com>
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <http://www.gnu.org/licenses/>.
+//
+
 using Gtk 4.0;
+using Adw 1;
 
-Gtk.ApplicationWindow window {
-    default-width: 960;
-    default-height: 540;
+Adw.ApplicationWindow window {
+	default-width: 960;
+	default-height: 540;
+	focus-widget: channel;
 
-    Gtk.Picture picture {
+	Adw.ToastOverlay toast {
+		Gtk.Overlay {
+			Gtk.Picture picture {
+				can-focus: false;
+			}
 
-    }
+			[overlay]
+			Gtk.Revealer revealer {
+				reveal-child: true;
+				transition-type: crossfade;
 
-    titlebar: Gtk.HeaderBar {
-        title-widget: Gtk.Box {
-            orientation: vertical;
-            valign: center;
+				Adw.HeaderBar header {
+					valign: start;
 
-            Gtk.Label {
-                styles ["title"]
-                label: "Twit-Twat";
-            }
+					title-widget: Adw.WindowTitle title {
+						title: "Twit-Twat";
+						subtitle: "";
+					};
 
-            Gtk.Label subtitle {
-                styles ["subtitle"]
-            }
-        };
+					[start]
+					Gtk.Button fullscreen {
+						icon-name: "view-fullscreen-symbolic";
+					}
 
-        [start]
-        Gtk.Button fullscreen {
-            icon-name: "view-fullscreen-symbolic";
-        }
+					[start]
+					Gtk.Spinner spinner {}
 
-        [start]
-        Gtk.Spinner spinner {}
+					[end]
+					Gtk.ScaleButton volume {
+						adjustment: Gtk.Adjustment {
+							upper: 100.0;
+							value: 100.0;
+							page-increment: 1.0;
+						};
+					}
 
-        [end]
-        Gtk.MenuButton {
-            direction: none;
-            popover: Gtk.Popover {
-                Gtk.ListBox speed {
-                    Gtk.Label {
-                        margin-top: 2;
-                        margin-bottom: 2;
-                        margin-start: 5;
-                        margin-end: 5;
-                        label: "Unlimited";
-                    }
-                    Gtk.Label {
-                        margin-top: 2;
-                        margin-bottom: 2;
-                        margin-start: 5;
-                        margin-end: 5;
-                        label: "1.0 Mbps";
-                    }
-                    Gtk.Label {
-                        margin-top: 2;
-                        margin-bottom: 2;
-                        margin-start: 5;
-                        margin-end: 5;
-                        label: "1.5 Mbps";
-                    }
-                    Gtk.Label {
-                        margin-top: 2;
-                        margin-bottom: 2;
-                        margin-start: 5;
-                        margin-end: 5;
-                        label: "2.0 Mbps";
-                    }
-                    Gtk.Label {
-                        margin-top: 2;
-                        margin-bottom: 2;
-                        margin-start: 5;
-                        margin-end: 5;
-                        label: "2.5 Mbps";
-                    }
-                    Gtk.Label {
-                        margin-top: 2;
-                        margin-bottom: 2;
-                        margin-start: 5;
-                        margin-end: 5;
-                        label: "3.0 Mbps";
-                    }
-                    Gtk.Label {
-                        margin-top: 2;
-                        margin-bottom: 2;
-                        margin-start: 5;
-                        margin-end: 5;
-                        label: "3.5 Mbps";
-                    }
-                    Gtk.Label {
-                        margin-top: 2;
-                        margin-bottom: 2;
-                        margin-start: 5;
-                        margin-end: 5;
-                        label: "4.0 Mbps";
-                    }
-                    Gtk.Label {
-                        margin-top: 2;
-                        margin-bottom: 2;
-                        margin-start: 5;
-                        margin-end: 5;
-                        label: "4.5 Mbps";
-                    }
-                    Gtk.Label {
-                        margin-top: 2;
-                        margin-bottom: 2;
-                        margin-start: 5;
-                        margin-end: 5;
-                        label: "5.0 Mbps";
-                    }
-                    Gtk.Label {
-                        margin-top: 2;
-                        margin-bottom: 2;
-                        margin-start: 5;
-                        margin-end: 5;
-                        label: "5.5 Mbps";
-                    }
-                    Gtk.Label {
-                        margin-top: 2;
-                        margin-bottom: 2;
-                        margin-start: 5;
-                        margin-end: 5;
-                        label: "6.0 Mbps";
-                    }
-                }
-            };
-        }
-
-        [end]
-        Gtk.ScaleButton volume {
-            adjustment: Gtk.Adjustment {
-                page-increment: 0.01;
-                upper: 1.0;
-                value: 1.0;
-            };
-        }
-
-        [end]
-        Gtk.Entry channel {
-            placeholder-text: "Twitch channel";
-        }
-    };
+					[end]
+					Gtk.Entry channel {
+						placeholder-text: "Twitch channel";
+					}
+				}
+			}
+		}
+	}
 }
