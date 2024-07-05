@@ -67,12 +67,6 @@ void main(string[] args) {
 		volume.value_changed.connect(() => {
 			playbin.volume = volume.adjustment.value / 100.0;
 		});
-		volume.icons = {
-			"audio-volume-muted-symbolic",
-			"audio-volume-high-symbolic",
-			"audio-volume-low-symbolic",
-			"audio-volume-medium-symbolic"
-		};
 
 		pipeline.get_bus().add_watch(Priority.DEFAULT, (bus, message) => {
 			switch (message.type) {
