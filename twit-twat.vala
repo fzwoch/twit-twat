@@ -52,14 +52,12 @@ void main(string[] args) {
 		var pipeline = new Gst.Pipeline(null);
 
 		var playbin = Gst.ElementFactory.make("playbin3", null) as dynamic Gst.Element;
-		var glsink = Gst.ElementFactory.make("glsinkbin", null) as dynamic Gst.Element;
 		var gtksink = Gst.ElementFactory.make("gtk4paintablesink", null) as dynamic Gst.Element;
 
 		pipeline.add(playbin);
 
 		playbin.instant_uri = true;
-		playbin.video_sink = glsink;
-		glsink.sink = gtksink;
+		playbin.video_sink = gtksink;
 
 		picture.paintable = gtksink.paintable;
 
