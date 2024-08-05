@@ -17,6 +17,8 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 //
 
+using Gsk;
+
 void main(string[] args) {
 	Gst.init(ref args);
 
@@ -47,6 +49,9 @@ void main(string[] args) {
 		playbin.video_sink = gtksink;
 
 		picture.paintable = gtksink.paintable;
+
+		gtksink.paintable.use_scaling_filter = true;
+		gtksink.paintable.scaling_filter = Gsk.ScalingFilter.TRILINEAR;
 
 		playbin.volume = volume.adjustment.value / 100.0;
 		volume.value_changed.connect(() => {
