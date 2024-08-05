@@ -20,20 +20,7 @@
 void main(string[] args) {
 	Gst.init(ref args);
 
-	string[] decoders = {
-		"vah264dec",
-		"vah265dec",
-		"vaav1dec"
-	};
-
-	foreach (string decoder in decoders) {
-		var dec = Gst.Registry.get().lookup_feature(decoder);
-		if (dec != null) {
-			dec.set_rank(Gst.Rank.PRIMARY << 1);
-		}
-	}
-
-	var app = new Adw.Application(null, ApplicationFlags.FLAGS_NONE);
+	var app = new Adw.Application(null, ApplicationFlags.DEFAULT_FLAGS);
 
 	app.activate.connect(() => {
 		var builder = new Gtk.Builder.from_resource("/twit-twat/twit-twat.ui");
