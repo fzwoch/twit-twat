@@ -50,9 +50,6 @@ void main(string[] args) {
 
 		picture.paintable = gtksink.paintable;
 
-		gtksink.paintable.use_scaling_filter = true;
-		gtksink.paintable.scaling_filter = Gsk.ScalingFilter.TRILINEAR;
-
 		playbin.volume = volume.adjustment.value / 100.0;
 		volume.value_changed.connect(() => {
 			playbin.volume = volume.adjustment.value / 100.0;
