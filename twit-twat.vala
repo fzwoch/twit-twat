@@ -28,6 +28,7 @@ void main(string[] args) {
 		var builder = new Gtk.Builder.from_resource("/twit-twat/twit-twat.ui");
 
 		var window = builder.get_object("window") as Adw.ApplicationWindow;
+		var fullscreen = builder.get_object("fullscreen") as Gtk.Button;
 		var picture = builder.get_object("picture") as Gtk.Picture;
 		var channel = builder.get_object("channel") as Gtk.Entry;
 		var revealer = builder.get_object("revealer") as Gtk.Revealer;
@@ -94,6 +95,10 @@ void main(string[] args) {
 					break;
 			}
 			return true;
+		});
+
+		fullscreen.clicked.connect(() => {
+			window.fullscreen();
 		});
 
 		channel.activate.connect(() => {
