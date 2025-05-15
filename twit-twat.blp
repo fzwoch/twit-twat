@@ -27,8 +27,12 @@ Adw.ApplicationWindow window {
 
 	Adw.ToastOverlay toast {
 		Gtk.Overlay {
-			Gtk.Picture picture {
-				can-focus: false;
+			Gtk.GraphicsOffload {
+				black-background: true;
+				enabled: enabled;
+				child: Gtk.Picture picture {
+					can-focus: false;
+				};
 			}
 
 			[overlay]
